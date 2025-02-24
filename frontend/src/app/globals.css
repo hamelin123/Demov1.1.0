@@ -1,0 +1,132 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary-color: #0066FF;
+  --secondary-color: #00C2FF;
+}
+
+/* Base Styles */
+body {
+  @apply bg-white dark:bg-gray-900 text-gray-900 dark:text-white transition-colors duration-200;
+}
+
+/* Navigation Styles */
+.nav-link {
+  @apply text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200;
+}
+
+/* Button Styles */
+.btn-primary {
+  @apply bg-blue-600 hover:bg-blue-700 text-white 
+         dark:bg-blue-500 dark:hover:bg-blue-600
+         transition-all duration-300 transform hover:-translate-y-0.5;
+}
+
+.btn-secondary {
+  @apply border border-blue-600 text-blue-600 hover:bg-blue-50
+         dark:border-blue-400 dark:text-blue-400 dark:hover:bg-blue-900/20 
+         transition-all duration-300;
+}
+
+/* Card Styles */
+.feature-card {
+  @apply bg-white/50 dark:bg-gray-800/50 
+         hover:bg-gray-50 dark:hover:bg-gray-800/70 
+         p-8 rounded-xl shadow-lg
+         transition-all duration-300 transform hover:-translate-y-1;
+}
+
+/* Layout Components */
+.container {
+  @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+}
+
+.section {
+  @apply py-20;
+}
+
+/* Typography */
+.heading-primary {
+  @apply text-5xl md:text-6xl font-bold 
+         text-gray-900 dark:text-white mb-6;
+}
+
+.heading-secondary {
+  @apply text-3xl font-bold 
+         text-gray-900 dark:text-white mb-4;
+}
+
+.text-gradient {
+  @apply bg-gradient-to-r from-blue-400 to-blue-600 
+         bg-clip-text text-transparent;
+}
+
+/* Background Gradients */
+.bg-gradient-custom {
+  @apply bg-gradient-to-b from-gray-50 to-white
+         dark:from-gray-900 dark:to-gray-800;
+}
+
+/* Animation Classes */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.animate-slideUp {
+  animation: slideUp 0.5s ease-out;
+}
+
+/* Dark Mode Icon Colors */
+.icon-primary {
+  @apply text-blue-600 dark:text-blue-400;
+}
+
+.icon-secondary {
+  @apply text-gray-600 dark:text-gray-400;
+}
+
+/* Border Colors */
+.border-theme {
+  @apply border-gray-200 dark:border-gray-800;
+}
+
+/* Background Colors */
+.bg-card {
+  @apply bg-white dark:bg-gray-800;
+}
+
+.bg-subtle {
+  @apply bg-gray-50 dark:bg-gray-800/50;
+}
+
+/* Text Colors */
+.text-body {
+  @apply text-gray-600 dark:text-gray-300;
+}
+
+.text-muted {
+  @apply text-gray-500 dark:text-gray-400;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .container {
+    @apply px-4;
+  }
+  
+  .heading-primary {
+    @apply text-4xl;
+  }
+}
