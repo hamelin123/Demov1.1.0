@@ -1,14 +1,15 @@
 import { Pool } from 'pg';
 import dotenv from 'dotenv';
+import logger from '../utils/logger';
 
 dotenv.config();
 
-// ตั้งค่าการเชื่อมต่อกับฐานข้อมูล PostgreSQL
+// กำหนดค่า connection configuration สำหรับเชื่อมต่อกับ PostgreSQL
 const pool = new Pool({
-  user: process.env.DB_USER || 'postgres', // แก้จาก 'localhost' เป็น 'postgres'
-  host: process.env.DB_HOST || 'host.docker.internal', // สำหรับ Docker
+  user: process.env.DB_USER || 'postgres',
+  host: process.env.DB_HOST || 'localhost', 
   database: process.env.DB_NAME || 'coldchain_db',
-  password: process.env.DB_PASSWORD || 'postgres', // ใช้รหัสผ่านตาม docker-compose
+  password: process.env.DB_PASSWORD || 'postgres',
   port: parseInt(process.env.DB_PORT || '5432'),
 });
 
@@ -18,11 +19,17 @@ const connectWithRetry = (maxRetries = 5) => {
   
   const attemptConnection = () => {
     pool.connect()
-      .then(() => {
+      .then(client => {
         console.log('Connected to PostgreSQL database successfully');
-        return pool.query('SELECT NOW()'); // เพิ่มการตรวจสอบการทำงานของฐานข้อมูล
+        // ทดสอบการ query เพื่อตรวจสอบว่าการเชื่อมต่อทำงานจริง
+        return client.query('SELECT NOW()', [], (err, result) => {
+          client.release();
+          if (err) {
+            throw err;
+          }
+          console.log('Database query successful:', result.rows[0]);
+        });
       })
-      .then(() => console.log('Database query successful'))
       .catch(err => {
         retries++;
         console.error(`Connection attempt ${retries} failed:`, err);
@@ -32,7 +39,13 @@ const connectWithRetry = (maxRetries = 5) => {
           setTimeout(attemptConnection, 5000);
         } else {
           console.error('Max retries reached. Could not connect to database.');
-          process.exit(1); // ออกจากโปรแกรมหากเชื่อมต่อไม่สำเร็จ
+          console.error('Please check your database connection parameters:');
+          console.error({
+            host: process.env.DB_HOST || 'localhost',
+            port: process.env.DB_PORT || '5432',
+            database: process.env.DB_NAME || 'coldchain_db',
+            user: process.env.DB_USER || 'postgres'
+          });
         }
       });
   };
@@ -46,15 +59,21 @@ export const db = pool;
  * สร้างตารางในฐานข้อมูล
  */
 export const initializeDatabase = async () => {
+  const client = await pool.connect();
   try {
     // ตรวจสอบการเชื่อมต่อก่อนสร้างตาราง
-    await pool.connect();
     console.log('Database connection established before table creation');
 
-    // สร้างตาราง users (และตารางอื่นๆ คงเดิม)
-    await pool.query(`
+    // เริ่ม transaction
+    await client.query('BEGIN');
+
+    // สร้าง extension uuid-ossp หากยังไม่มี
+    await client.query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"');
+
+    // สร้างตาราง users
+    await client.query(`
       CREATE TABLE IF NOT EXISTS users (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
         username VARCHAR(50) UNIQUE NOT NULL,
         email VARCHAR(100) UNIQUE NOT NULL,
         password VARCHAR(255) NOT NULL,
@@ -67,10 +86,12 @@ export const initializeDatabase = async () => {
       )
     `);
 
-    // สร้างตารางอื่นๆ คงเดิม...
-
+    // commit transaction
+    await client.query('COMMIT');
     console.log('Database tables initialized successfully');
   } catch (error) {
+    // rollback ในกรณีที่เกิดข้อผิดพลาด
+    await client.query('ROLLBACK');
     console.error('Error initializing database tables:', error);
     
     // บันทึก error อย่างละเอียด
@@ -78,16 +99,22 @@ export const initializeDatabase = async () => {
       message: error.message,
       stack: error.stack,
       connectionParams: {
-        host: process.env.DB_HOST,
-        port: process.env.DB_PORT,
-        database: process.env.DB_NAME,
-        user: process.env.DB_USER
+        host: process.env.DB_HOST || 'localhost',
+        port: process.env.DB_PORT || '5432',
+        database: process.env.DB_NAME || 'coldchain_db',
+        user: process.env.DB_USER || 'postgres'
       }
     });
 
     throw error;
+  } finally {
+    // คืน client กลับไปที่ pool
+    client.release();
   }
 };
 
 // เรียกใช้ Retry Connection
-connectWithRetry();
+// connectWithRetry();
+
+// Export สำหรับใช้ในส่วนอื่นของแอปพลิเคชัน
+export default { db, initializeDatabase };

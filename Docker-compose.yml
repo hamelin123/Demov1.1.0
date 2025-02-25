@@ -11,19 +11,5 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
 
-  backend:
-    build: 
-      context: ./backend
-    container_name: coldchain-backend
-    ports:
-      - "5000:5000"
-    depends_on:
-      - postgres
-    environment:
-      - DB_HOST=host.docker.internal  # สำหรับ Windows/Mac
-      - DB_PORT=5432
-      - DB_USER=postgres
-      - DB_PASSWORD=postgres
-      - DB_NAME=coldchain_db
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+volumes:
+  postgres-data:

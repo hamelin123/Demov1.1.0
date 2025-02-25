@@ -11,7 +11,7 @@ export const createTables = async () => {
   
   try {
     await client.query('BEGIN');
-    
+    await client.query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"');
     // สร้างตาราง users
     await client.query(`
       CREATE TABLE IF NOT EXISTS users (
