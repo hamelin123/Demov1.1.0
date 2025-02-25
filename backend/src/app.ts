@@ -2,20 +2,42 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import routes from './routes';
+import { initializeDatabase } from './config/database';
+import { errorHandler } from './middleware/error'; // ตรวจสอบว่า path นี้ถูกต้อง
 
 dotenv.config();
 
 const app = express();
 
-app.use(cors());
+// Middleware
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  credentials: true
+}));
 app.use(express.json());
 
-// Basic route test
-app.get('/', (req, res) => {
-  res.send('Server is running!');
+// Log middleware (ถ้ามี)
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+  next();
 });
 
 // API routes
 app.use('/api', routes);
+
+// Test route
+app.get('/', (req, res) => {
+  res.json({ message: 'Cold Chain API is running!' });
+});
+
+// Error handling middleware - ต้องใส่ทั้ง 4 parameters ตามลำดับนี้
+app.use((err, req, res, next) => {
+  errorHandler(err, req, res, next);
+});
+
+// เริ่มต้นฐานข้อมูล
+initializeDatabase()
+  .then(() => console.log('Database initialized successfully'))
+  .catch(err => console.error('Error initializing database:', err));
 
 export default app;
