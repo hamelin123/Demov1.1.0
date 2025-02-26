@@ -5,16 +5,16 @@ import Link from 'next/link';
 import { useTheme } from 'next-themes';
 import { Button } from '@nextui-org/react';
 import { Sun, Moon, Menu, X, Thermometer } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
+import { useTranslations } from 'next-intl';
 import { LanguageSwitcher } from './LanguageSwitcher';
 
 export function Navbar() {
   const [mounted, setMounted] = useState(false);
   const { theme, setTheme } = useTheme();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { t } = useTranslation();
+  const t = useTranslations('navigation');
 
-  // ป้องกัน hydration error
+  // Prevent hydration errors
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -34,13 +34,13 @@ export function Navbar() {
 
           <div className="hidden md:flex items-center space-x-6">
             <Link href="/services" className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">
-              {t('navigation.services')}
+              {t('services')}
             </Link>
             <Link href="/tracking" className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">
-              {t('navigation.tracking')}
+              {t('tracking')}
             </Link>
             <Link href="/contact" className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">
-              {t('navigation.contact')}
+              {t('contact')}
             </Link>
             <LanguageSwitcher />
             <Button
@@ -59,10 +59,11 @@ export function Navbar() {
               className="bg-blue-600 text-white hover:bg-blue-700"
               onPress={() => {}}
             >
-              {t('navigation.login')}
+              {t('login')}
             </Button>
           </div>
 
+          {/* Mobile Menu Button */}
           <Button 
             className="md:hidden bg-gray-100 dark:bg-gray-800"
             variant="light"
@@ -77,17 +78,18 @@ export function Navbar() {
         </div>
       </div>
 
+      {/* Mobile Menu */}
       {isMenuOpen && (
         <div className="md:hidden p-4 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
           <div className="flex flex-col space-y-4">
             <Link href="/services" className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">
-              {t('navigation.services')}
+              {t('services')}
             </Link>
             <Link href="/tracking" className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">
-              {t('navigation.tracking')}
+              {t('tracking')}
             </Link>
             <Link href="/contact" className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">
-              {t('navigation.contact')}
+              {t('contact')}
             </Link>
             <LanguageSwitcher />
             <Button
@@ -106,7 +108,7 @@ export function Navbar() {
               className="bg-blue-600 text-white hover:bg-blue-700"
               onPress={() => {}}
             >
-              {t('navigation.login')}
+              {t('login')}
             </Button>
           </div>
         </div>

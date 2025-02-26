@@ -1,0 +1,39 @@
+{
+  "navigation": {
+    "services": "Services",
+    "tracking": "Track Shipment",
+    "contact": "Contact",
+    "login": "Login"
+  },
+  "hero": {
+    "title": "Temperature-Controlled Logistics Excellence",
+    "subtitle": "Advanced Cold Chain Solutions with Real-Time Monitoring",
+    "getStarted": "Get Started",
+    "learnMore": "Learn More"
+  },
+  "features": {
+    "temperatureControl": {
+      "title": "Temperature Control",
+      "description": "Precise Temperature Monitoring Throughout Transit"
+    },
+    "tracking": {
+      "title": "Real-Time Tracking", 
+      "description": "GPS Tracking for Complete Shipment Visibility"
+    },
+    "quality": {
+      "title": "Quality Assured",
+      "description": "Strict Quality Controls for Product Integrity"
+    }
+  },
+  "professionalServices": {
+    "title": "Professional Services",
+    "subtitle": "Temperature-Controlled Logistics Solutions for Your Valuable Cargo",
+    "temperatureControl": "Temperature Control",
+    "realTimeTracking": "Real-Time Tracking",
+    "qualityAssurance": "Quality Assurance"
+  },
+  "contact": {
+    "title": "Contact Us",
+    "address": "123 Cold Storage Building\nDigital Park, Sukhumvit Road\nBangkok 10110, Thailand"
+  }
+}

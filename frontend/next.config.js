@@ -1,3 +1,5 @@
+const { locales } = require('./next-intl.config.ts');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -10,6 +12,10 @@ const nextConfig = {
     };
     return config;
   },
+  i18n: {
+    locales,
+    defaultLocale: 'en'
+  }
 };
 
 module.exports = nextConfig;

@@ -2,10 +2,10 @@
 
 import { Button } from '@nextui-org/react';
 import { ThermometerSnowflake, MapPin, Shield } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
+import { useTranslations } from 'next-intl';
 
 export function HomeContent() {
-  const { t } = useTranslation();
+  const t = useTranslations();
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -62,7 +62,7 @@ export function HomeContent() {
           </div>
         </section>
 
-        {/* Professional Services and Contact Section */}
+        {/* Professional Services Section */}
         <section className="bg-white dark:bg-gray-900 py-20 transition-colors duration-300">
           <div className="container mx-auto px-4">
             <div className="grid md:grid-cols-2 gap-12">
@@ -78,19 +78,25 @@ export function HomeContent() {
                     <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center mr-4">
                       <ThermometerSnowflake className="text-blue-600 dark:text-blue-400" size={24} />
                     </div>
-                    <span className="text-gray-800 dark:text-white">{t('professionalServices.temperatureControl')}</span>
+                    <span className="text-gray-800 dark:text-white">
+                      {t('professionalServices.temperatureControl')}
+                    </span>
                   </li>
                   <li className="flex items-center">
                     <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center mr-4">
                       <MapPin className="text-blue-600 dark:text-blue-400" size={24} />
                     </div>
-                    <span className="text-gray-800 dark:text-white">{t('professionalServices.realTimeTracking')}</span>
+                    <span className="text-gray-800 dark:text-white">
+                      {t('professionalServices.realTimeTracking')}
+                    </span>
                   </li>
                   <li className="flex items-center">
                     <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center mr-4">
                       <Shield className="text-blue-600 dark:text-blue-400" size={24} />
                     </div>
-                    <span className="text-gray-800 dark:text-white">{t('professionalServices.qualityAssurance')}</span>
+                    <span className="text-gray-800 dark:text-white">
+                      {t('professionalServices.qualityAssurance')}
+                    </span>
                   </li>
                 </ul>
               </div>
@@ -102,9 +108,6 @@ export function HomeContent() {
                 <div className="bg-gray-50 dark:bg-gray-800 p-8 rounded-xl">
                   <div className="space-y-4 text-gray-600 dark:text-gray-300">
                     <p>{t('contact.address')}</p>
-                    <p>{t('contact.city')}</p>
-                    <p>{t('contact.phone')}: {t('contact.phoneNumber')}</p>
-                    <p>{t('contact.email')}: {t('contact.emailAddress')}</p>
                   </div>
                 </div>
               </div>
