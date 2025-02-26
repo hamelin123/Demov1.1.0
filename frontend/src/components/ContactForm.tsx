@@ -1,195 +1,143 @@
 'use client';
 
-import React, { useState, FormEvent, ChangeEvent } from 'react';
-import { Input, Textarea, Button } from '@nextui-org/react';
-import { User, Mail, MessageSquare, Building, PhoneCall } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
+import { useState } from 'react';
 
-interface FormData {
-  name: string;
-  email: string;
-  company: string;
-  phone: string;
-  message: string;
-}
-
-interface FormStatus {
-  submitted: boolean;
-  success: boolean;
-  message: string;
-}
-
-const ContactForm: React.FC = () => {
-  const { t } = useTranslation();
-
-  const [formData, setFormData] = useState<FormData>({
+export default function ContactForm() {
+  const [formData, setFormData] = useState({
     name: '',
     email: '',
-    company: '',
-    phone: '',
+    subject: '',
     message: ''
   });
-
-  const [formStatus, setFormStatus] = useState<FormStatus>({
-    submitted: false,
-    success: false,
-    message: ''
-  });
-
-  const handleChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
+  
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<null | 'success' | 'error'>(null);
+  
+  const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
       [name]: value
     }));
   };
-
-  const validateForm = (): { valid: boolean; message: string } => {
-    const { name, email, message } = formData;
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (!name.trim()) {
-      return { 
-        valid: false, 
-        message: t('contact.form.errorName') 
-      };
-    }
-
-    if (!email.trim() || !emailRegex.test(email)) {
-      return { 
-        valid: false, 
-        message: t('contact.form.errorEmail') 
-      };
-    }
-
-    if (!message.trim()) {
-      return { 
-        valid: false, 
-        message: t('contact.form.errorMessage') 
-      };
-    }
-
-    return { valid: true, message: '' };
-  };
-
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
-    const validation = validateForm();
-    if (!validation.valid) {
-      setFormStatus({
-        submitted: true,
-        success: false,
-        message: validation.message
-      });
-      return;
-    }
-
+    setIsSubmitting(true);
+    
     try {
-      // Simulate form submission
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      setFormStatus({
-        submitted: true,
-        success: true,
-        message: t('contact.form.successMessage')
-      });
-
-      // Reset form
+      // ในโปรดักชัน จะส่งข้อมูลไปยัง API จริง
+      // await fetch('/api/contact', {
+      //   method: 'POST',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //   },
+      //   body: JSON.stringify(formData),
+      // });
+      
+      // จำลองการส่งข้อมูล
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      setSubmitStatus('success');
       setFormData({
         name: '',
         email: '',
-        company: '',
-        phone: '',
+        subject: '',
         message: ''
       });
     } catch (error) {
-      setFormStatus({
-        submitted: true,
-        success: false,
-        message: t('contact.form.errorSubmit')
-      });
+      console.error('Error submitting form:', error);
+      setSubmitStatus('error');
+    } finally {
+      setIsSubmitting(false);
     }
   };
-
+  
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {formStatus.submitted && (
-        <div 
-          className={`
-            p-4 rounded-md 
-            ${formStatus.success 
-              ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300' 
-              : 'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300'
-            }
-          `}
-        >
-          {formStatus.message}
+      {submitStatus === 'success' && (
+        <div className="p-4 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-lg">
+          Thank you for your message! We will get back to you soon.
         </div>
       )}
-
-      <Input
-        type="text"
-        label={t('contact.form.name')}
-        name="name"
-        value={formData.name}
-        onChange={handleChange}
-        startContent={<User className="text-default-400" />}
-        variant="bordered"
-      />
-
-      <Input
-        type="email"
-        label={t('contact.form.email')}
-        name="email"
-        value={formData.email}
-        onChange={handleChange}
-        startContent={<Mail className="text-default-400" />}
-        variant="bordered"
-      />
-
-      <Input
-        type="text"
-        label={t('contact.form.company')}
-        name="company"
-        value={formData.company}
-        onChange={handleChange}
-        startContent={<Building className="text-default-400" />}
-        variant="bordered"
-      />
-
-      <Input
-        type="tel"
-        label={t('contact.form.phone')}
-        name="phone"
-        value={formData.phone}
-        onChange={handleChange}
-        startContent={<PhoneCall className="text-default-400" />}
-        variant="bordered"
-      />
-
-      <Textarea
-        label={t('contact.form.message')}
-        name="message"
-        value={formData.message}
-        onChange={handleChange}
-        startContent={<MessageSquare className="text-default-400" />}
-        variant="bordered"
-        minRows={4}
-      />
-
-      <Button 
-        type="submit" 
-        color="primary" 
-        fullWidth 
-        size="lg"
+      
+      {submitStatus === 'error' && (
+        <div className="p-4 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-lg">
+          There was an error sending your message. Please try again.
+        </div>
+      )}
+      
+      <div>
+        <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          Name
+        </label>
+        <input
+          type="text"
+          id="name"
+          name="name"
+          value={formData.name}
+          onChange={handleChange}
+          required
+          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+        />
+      </div>
+      
+      <div>
+        <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          Email
+        </label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          value={formData.email}
+          onChange={handleChange}
+          required
+          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+        />
+      </div>
+      
+      <div>
+        <label htmlFor="subject" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          Subject
+        </label>
+        <input
+          type="text"
+          id="subject"
+          name="subject"
+          value={formData.subject}
+          onChange={handleChange}
+          required
+          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+        />
+      </div>
+      
+      <div>
+        <label htmlFor="message" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          Message
+        </label>
+        <textarea
+          id="message"
+          name="message"
+          value={formData.message}
+          onChange={handleChange}
+          required
+          rows={4}
+          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+        />
+      </div>
+      
+      <button
+        type="submit"
+        disabled={isSubmitting}
+        className={`w-full px-4 py-2 text-white font-medium rounded-lg ${
+          isSubmitting 
+            ? 'bg-blue-400 cursor-not-allowed' 
+            : 'bg-blue-600 hover:bg-blue-700'
+        } transition-colors`}
       >
-        {t('contact.form.submit')}
-      </Button>
+        {isSubmitting ? 'Sending...' : 'Send Message'}
+      </button>
     </form>
   );
-};
-
-export default ContactForm;
+}

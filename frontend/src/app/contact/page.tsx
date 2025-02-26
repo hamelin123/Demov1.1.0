@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
-import { useTranslations } from 'next-intl';
+// ลบบรรทัดนี้ที่เป็นปัญหา
+// import { useTranslations } from 'next-intl';
 import ClientWrapper from '@/components/ClientWrapper';
 import ContactForm from '@/components/ContactForm';
 import { Facebook, Twitter, Linkedin, MapPin, Phone, Mail, Clock } from 'lucide-react';
@@ -10,7 +11,8 @@ export const metadata: Metadata = {
 };
 
 export default function ContactPage() {
-  const t = useTranslations('contact');
+  // ลบบรรทัดนี้ที่เป็นปัญหา
+  // const t = useTranslations('contact');
   
   const socialLinks = [
     { 
@@ -33,19 +35,22 @@ export default function ContactPage() {
   return (
     <ClientWrapper>
       <div className="container mx-auto px-4 py-12">
-        <h1 className="text-4xl font-bold mb-8 text-center">{t('title')}</h1>
+        {/* แทนที่ t('title') ด้วยข้อความตรงๆ */}
+        <h1 className="text-4xl font-bold mb-8 text-center">Contact Us</h1>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
           {/* Contact Information */}
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8">
-            <h2 className="text-2xl font-semibold mb-6">{t('contactInfo')}</h2>
+            {/* แทนที่ t('contactInfo') ด้วยข้อความตรงๆ */}
+            <h2 className="text-2xl font-semibold mb-6">Contact Information</h2>
             
             <div className="space-y-6">
               {/* Phone */}
               <div className="flex items-center space-x-4">
                 <Phone className="text-blue-600 dark:text-blue-400 w-6 h-6" />
                 <div>
-                  <h3 className="text-lg font-medium">{t('phoneTitle')}</h3>
+                  {/* แทนที่ t('phoneTitle') */}
+                  <h3 className="text-lg font-medium">Phone</h3>
                   <p className="text-gray-600 dark:text-gray-300">+66 2 123 4567</p>
                 </div>
               </div>
@@ -54,7 +59,8 @@ export default function ContactPage() {
               <div className="flex items-center space-x-4">
                 <Mail className="text-blue-600 dark:text-blue-400 w-6 h-6" />
                 <div>
-                  <h3 className="text-lg font-medium">{t('emailTitle')}</h3>
+                  {/* แทนที่ t('emailTitle') */}
+                  <h3 className="text-lg font-medium">Email</h3>
                   <p className="text-gray-600 dark:text-gray-300">contact@coldchain.example.com</p>
                 </div>
               </div>
@@ -63,7 +69,8 @@ export default function ContactPage() {
               <div className="flex items-center space-x-4">
                 <MapPin className="text-blue-600 dark:text-blue-400 w-6 h-6" />
                 <div>
-                  <h3 className="text-lg font-medium">{t('addressTitle')}</h3>
+                  {/* แทนที่ t('addressTitle') */}
+                  <h3 className="text-lg font-medium">Address</h3>
                   <p className="text-gray-600 dark:text-gray-300">
                     123 Cold Storage Building<br />
                     Digital Park, Sukhumvit Road<br />
@@ -76,11 +83,15 @@ export default function ContactPage() {
               <div className="flex items-center space-x-4">
                 <Clock className="text-blue-600 dark:text-blue-400 w-6 h-6" />
                 <div>
-                  <h3 className="text-lg font-medium">{t('hoursTitle')}</h3>
+                  {/* แทนที่ t('hoursTitle') */}
+                  <h3 className="text-lg font-medium">Working Hours</h3>
                   <p className="text-gray-600 dark:text-gray-300">
-                    {t('hoursWeekday')}<br />
-                    {t('hoursSaturday')}<br />
-                    {t('hoursSunday')}
+                    {/* แทนที่ t('hoursWeekday') */}
+                    Monday-Friday: 8am - 6pm<br />
+                    {/* แทนที่ t('hoursSaturday') */}
+                    Saturday: 9am - 3pm<br />
+                    {/* แทนที่ t('hoursSunday') */}
+                    Sunday: Closed
                   </p>
                 </div>
               </div>
@@ -88,7 +99,8 @@ export default function ContactPage() {
             
             {/* Social Links */}
             <div className="mt-8">
-              <h3 className="text-lg font-medium mb-4">{t('socialTitle')}</h3>
+              {/* แทนที่ t('socialTitle') */}
+              <h3 className="text-lg font-medium mb-4">Follow Us</h3>
               <div className="flex space-x-4">
                 {socialLinks.map(({ Icon, href, label }) => (
                   <a 
@@ -108,16 +120,19 @@ export default function ContactPage() {
           
           {/* Contact Form */}
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8">
-            <h2 className="text-2xl font-semibold mb-6">{t('formTitle')}</h2>
+            {/* แทนที่ t('formTitle') */}
+            <h2 className="text-2xl font-semibold mb-6">Send Us a Message</h2>
             <ContactForm />
           </div>
         </div>
         
         {/* Map Placeholder */}
         <div className="mt-16">
-          <h2 className="text-2xl font-semibold mb-6 text-center">{t('findUs')}</h2>
+          {/* แทนที่ t('findUs') */}
+          <h2 className="text-2xl font-semibold mb-6 text-center">Find Us</h2>
           <div className="bg-gray-200 dark:bg-gray-700 rounded-lg h-96 flex items-center justify-center">
-            <p className="text-gray-600 dark:text-gray-300">{t('mapPlaceholder')}</p>
+            {/* แทนที่ t('mapPlaceholder') */}
+            <p className="text-gray-600 dark:text-gray-300">Map will be displayed here</p>
             {/* TODO: Integrate Google Maps or other map service */}
           </div>
         </div>
