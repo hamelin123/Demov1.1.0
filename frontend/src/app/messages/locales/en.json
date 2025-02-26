@@ -2,12 +2,12 @@
   "navigation": {
     "services": "Services",
     "tracking": "Track Shipment",
-    "contact": "Contact",
+    "contact": "Contact", 
     "login": "Login"
   },
   "hero": {
     "title": "Temperature-Controlled Logistics Excellence",
-    "subtitle": "Advanced Cold Chain Solutions with Real-Time Monitoring",
+    "subtitle": "Advanced Cold Chain Solutions with Real-Time Monitoring", 
     "getStarted": "Get Started",
     "learnMore": "Learn More"
   },
@@ -17,11 +17,11 @@
       "description": "Precise Temperature Monitoring Throughout Transit"
     },
     "tracking": {
-      "title": "Real-Time Tracking", 
+      "title": "Real-Time Tracking",
       "description": "GPS Tracking for Complete Shipment Visibility"
     },
     "quality": {
-      "title": "Quality Assured",
+      "title": "Quality Assured", 
       "description": "Strict Quality Controls for Product Integrity"
     }
   },

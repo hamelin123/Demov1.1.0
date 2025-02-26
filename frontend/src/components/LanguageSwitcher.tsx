@@ -1,23 +1,21 @@
 'use client';
 
-import { Button } from '@nextui-org/react';
-import { useTranslation } from 'react-i18next';
+import { useRouter, usePathname } from 'next/navigation';
+import { useLocale } from 'next-intl';
 
 export function LanguageSwitcher() {
-  const { i18n } = useTranslation();
+  const router = useRouter();
+  const pathname = usePathname();
+  const locale = useLocale();
 
-  const toggleLanguage = async () => {
-    const newLang = i18n.language === 'en' ? 'th' : 'en';
-    await i18n.changeLanguage(newLang);
+  const toggleLanguage = () => {
+    const newLocale = locale === 'en' ? 'th' : 'en';
+    router.push(pathname, { locale: newLocale });
   };
 
   return (
-    <Button
-      variant="light"
-      onPress={toggleLanguage}
-      className="text-sm"
-    >
-      {i18n.language === 'en' ? 'ไทย' : 'ENG'}
-    </Button>
+    <button onClick={toggleLanguage}>
+      {locale === 'en' ? 'ไทย' : 'EN'}
+    </button>
   );
 }
