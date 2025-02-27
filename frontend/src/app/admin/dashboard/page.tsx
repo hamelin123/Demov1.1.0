@@ -2,16 +2,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { 
   Users, ShoppingBag, Truck, Thermometer, AlertTriangle,
-  TrendingUp, TrendingDown, ArrowRight
+  TrendingUp, Calendar, ArrowRight, User, Package, 
+  Clipboard, DollarSign
 } from 'lucide-react';
 import { useLanguage } from '@/providers/LanguageProvider';
-import Link from 'next/link';
 
 export default function AdminDashboardPage() {
-  const router = useRouter();
   const { language } = useLanguage();
   const [loading, setLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState(null);
@@ -20,6 +19,7 @@ export default function AdminDashboardPage() {
   const translations = {
     th: {
       dashboard: 'แดชบอร์ด',
+      welcome: 'ยินดีต้อนรับ',
       summary: 'สรุป',
       totalUsers: 'ผู้ใช้ทั้งหมด',
       totalOrders: 'คำสั่งซื้อทั้งหมด',
@@ -44,10 +44,18 @@ export default function AdminDashboardPage() {
       newUsers: 'ผู้ใช้ใหม่',
       newUsersThisWeek: 'ผู้ใช้ใหม่ในสัปดาห์นี้',
       noOrders: 'ไม่มีคำสั่งซื้อล่าสุด',
-      noAlerts: 'ไม่มีการแจ้งเตือนอุณหภูมิล่าสุด'
+      noAlerts: 'ไม่มีการแจ้งเตือนอุณหภูมิล่าสุด',
+      todaysRevenue: 'รายได้วันนี้',
+      monthlyRevenue: 'รายได้รายเดือน',
+      activeVehicles: 'ยานพาหนะที่ใช้งาน',
+      pendingDeliveries: 'การจัดส่งที่รอดำเนินการ',
+      recentUsers: 'ผู้ใช้ล่าสุด',
+      recentlyJoined: 'เข้าร่วมเมื่อเร็วๆ นี้',
+      noRecentUsers: 'ไม่มีผู้ใช้ล่าสุด'
     },
     en: {
       dashboard: 'Dashboard',
+      welcome: 'Welcome',
       summary: 'Summary',
       totalUsers: 'Total Users',
       totalOrders: 'Total Orders',
@@ -72,7 +80,14 @@ export default function AdminDashboardPage() {
       newUsers: 'New Users',
       newUsersThisWeek: 'New users this week',
       noOrders: 'No recent orders',
-      noAlerts: 'No recent temperature alerts'
+      noAlerts: 'No recent temperature alerts',
+      todaysRevenue: 'Today\'s Revenue',
+      monthlyRevenue: 'Monthly Revenue',
+      activeVehicles: 'Active Vehicles',
+      pendingDeliveries: 'Pending Deliveries',
+      recentUsers: 'Recent Users',
+      recentlyJoined: 'Recently joined',
+      noRecentUsers: 'No recent users'
     }
   };
 
@@ -92,13 +107,19 @@ export default function AdminDashboardPage() {
         // const data = await response.json();
         
         // ใช้ข้อมูลจำลองสำหรับการพัฒนา
+        await new Promise(resolve => setTimeout(resolve, 1000)); // จำลองความล่าช้าของเครือข่าย
+        
         const mockData = {
           stats: {
             totalUsers: 128,
             totalOrders: 1854,
             activeShipments: 43,
             temperatureAlerts: 5,
-            newUsers: 12
+            newUsers: 12,
+            todaysRevenue: 187500,
+            monthlyRevenue: 3850000,
+            activeVehicles: 15,
+            pendingDeliveries: 27
           },
           recentOrders: [
             {
@@ -164,6 +185,29 @@ export default function AdminDashboardPage() {
               limit: '-18.0°C to -22.0°C',
               time: '25 ก.พ. 2025 18:15'
             }
+          ],
+          recentUsers: [
+            {
+              id: '1',
+              username: 'newuser1',
+              fullName: 'สมชาย ใจดี',
+              email: 'somchai@example.com',
+              joinDate: '27 ก.พ. 2025'
+            },
+            {
+              id: '2',
+              username: 'newuser2',
+              fullName: 'แก้วตา มีสุข',
+              email: 'kaewta@example.com',
+              joinDate: '26 ก.พ. 2025'
+            },
+            {
+              id: '3',
+              username: 'newuser3',
+              fullName: 'วิชัย เก่งกาจ',
+              email: 'wichai@example.com',
+              joinDate: '25 ก.พ. 2025'
+            }
           ]
         };
         
@@ -182,7 +226,6 @@ export default function AdminDashboardPage() {
   if (loading) {
     return (
       <div className="flex h-full w-full items-center justify-center">
-// src/app/admin/dashboard/page.tsx (ต่อ)
         <div className="h-12 w-12 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
       </div>
     );
@@ -192,7 +235,7 @@ export default function AdminDashboardPage() {
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t.dashboard}</h1>
       
-      {/* Summary Cards */}
+      {/* Summary Cards - First Row */}
       <section>
         <h2 className="mb-4 text-lg font-semibold text-gray-800 dark:text-white">{t.summary}</h2>
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -269,10 +312,99 @@ export default function AdminDashboardPage() {
             </div>
             <div className="mt-4 flex items-center space-x-2 text-sm">
               <div className="flex items-center text-red-600 dark:text-red-400">
-                <TrendingDown className="mr-1 h-4 w-4" />
+                <TrendingUp className="mr-1 h-4 w-4" />
                 <span>2.3%</span>
               </div>
               <span className="text-gray-500 dark:text-gray-400">vs. last month</span>
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      {/* Summary Cards - Second Row */}
+      <section>
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {/* Today's Revenue */}
+          <div className="rounded-lg bg-white p-6 shadow-sm dark:bg-gray-800">
+            <div className="flex items-center">
+              <div className="mr-4 flex h-12 w-12 items-center justify-center rounded-lg bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400">
+                <DollarSign className="h-6 w-6" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{t.todaysRevenue}</p>
+                <p className="text-2xl font-semibold text-gray-900 dark:text-white">
+                  ฿{dashboardData?.stats.todaysRevenue.toLocaleString()}
+                </p>
+              </div>
+            </div>
+            <div className="mt-4 flex items-center space-x-2 text-sm">
+              <div className="flex items-center text-green-600 dark:text-green-400">
+                <TrendingUp className="mr-1 h-4 w-4" />
+                <span>5.2%</span>
+              </div>
+              <span className="text-gray-500 dark:text-gray-400">vs. yesterday</span>
+            </div>
+          </div>
+          
+          {/* Monthly Revenue */}
+          <div className="rounded-lg bg-white p-6 shadow-sm dark:bg-gray-800">
+            <div className="flex items-center">
+              <div className="mr-4 flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
+                <Calendar className="h-6 w-6" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{t.monthlyRevenue}</p>
+                <p className="text-2xl font-semibold text-gray-900 dark:text-white">
+                  ฿{dashboardData?.stats.monthlyRevenue.toLocaleString()}
+                </p>
+              </div>
+            </div>
+            <div className="mt-4 flex items-center space-x-2 text-sm">
+              <div className="flex items-center text-green-600 dark:text-green-400">
+                <TrendingUp className="mr-1 h-4 w-4" />
+                <span>12.5%</span>
+              </div>
+              <span className="text-gray-500 dark:text-gray-400">vs. last month</span>
+            </div>
+          </div>
+          
+          {/* Active Vehicles */}
+          <div className="rounded-lg bg-white p-6 shadow-sm dark:bg-gray-800">
+            <div className="flex items-center">
+              <div className="mr-4 flex h-12 w-12 items-center justify-center rounded-lg bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400">
+                <Truck className="h-6 w-6" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{t.activeVehicles}</p>
+                <p className="text-2xl font-semibold text-gray-900 dark:text-white">{dashboardData?.stats.activeVehicles}</p>
+              </div>
+            </div>
+            <div className="mt-4 flex items-center space-x-2 text-sm">
+              <div className="flex items-center text-green-600 dark:text-green-400">
+                <TrendingUp className="mr-1 h-4 w-4" />
+                <span>3</span>
+              </div>
+              <span className="text-gray-500 dark:text-gray-400">more than last week</span>
+            </div>
+          </div>
+          
+          {/* Pending Deliveries */}
+          <div className="rounded-lg bg-white p-6 shadow-sm dark:bg-gray-800">
+            <div className="flex items-center">
+              <div className="mr-4 flex h-12 w-12 items-center justify-center rounded-lg bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400">
+                <Package className="h-6 w-6" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{t.pendingDeliveries}</p>
+                <p className="text-2xl font-semibold text-gray-900 dark:text-white">{dashboardData?.stats.pendingDeliveries}</p>
+              </div>
+            </div>
+            <div className="mt-4 flex items-center space-x-2 text-sm">
+              <div className="flex items-center text-red-600 dark:text-red-400">
+                <TrendingUp className="mr-1 h-4 w-4" />
+                <span>4</span>
+              </div>
+              <span className="text-gray-500 dark:text-gray-400">more than yesterday</span>
             </div>
           </div>
         </div>
@@ -349,56 +481,110 @@ export default function AdminDashboardPage() {
         </div>
       </section>
       
-      {/* Recent Temperature Alerts */}
-      <section className="rounded-lg bg-white shadow-sm dark:bg-gray-800">
-        <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-gray-700">
-          <h2 className="text-lg font-semibold text-gray-800 dark:text-white">{t.recentAlerts}</h2>
-          <Link 
-            href="/admin/temperature/alerts" 
-            className="flex items-center text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
-          >
-            {t.viewAll}
-            <ArrowRight className="ml-1 h-4 w-4" />
-          </Link>
-        </div>
-        
-        <div className="overflow-x-auto">
-          {dashboardData?.recentAlerts && dashboardData.recentAlerts.length > 0 ? (
-            <table className="w-full table-auto">
-              <thead>
-                <tr className="border-b border-gray-200 bg-gray-50 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:bg-gray-700/50 dark:text-gray-400">
-                  <th className="whitespace-nowrap px-6 py-3">{t.shipment}</th>
-                  <th className="whitespace-nowrap px-6 py-3">{t.temperature}</th>
-                  <th className="whitespace-nowrap px-6 py-3">{t.limit}</th>
-                  <th className="whitespace-nowrap px-6 py-3">{t.time}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                {dashboardData.recentAlerts.map((alert) => (
-                  <tr key={alert.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                    <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-blue-600 dark:text-blue-400">
-                      <Link href={`/admin/shipments/${alert.shipment}`}>{alert.shipment}</Link>
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-red-600 dark:text-red-400 font-medium">
-                      {alert.temperature}
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
-                      {alert.limit}
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
-                      {alert.time}
-                    </td>
+      {/* Bottom Grid: Recent Temperature Alerts and Recent Users */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        {/* Temperature Alerts */}
+        <section className="rounded-lg bg-white shadow-sm dark:bg-gray-800">
+          <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-white">{t.recentAlerts}</h2>
+            <Link 
+              href="/admin/temperature/alerts" 
+              className="flex items-center text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+            >
+              {t.viewAll}
+              <ArrowRight className="ml-1 h-4 w-4" />
+            </Link>
+          </div>
+          
+          <div className="overflow-x-auto">
+            {dashboardData?.recentAlerts && dashboardData.recentAlerts.length > 0 ? (
+              <table className="w-full table-auto">
+                <thead>
+                  <tr className="border-b border-gray-200 bg-gray-50 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:bg-gray-700/50 dark:text-gray-400">
+                    <th className="whitespace-nowrap px-6 py-3">{t.shipment}</th>
+                    <th className="whitespace-nowrap px-6 py-3">{t.temperature}</th>
+                    <th className="whitespace-nowrap px-6 py-3">{t.limit}</th>
+                    <th className="whitespace-nowrap px-6 py-3">{t.time}</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
-            <div className="flex h-64 items-center justify-center text-gray-500 dark:text-gray-400">
-              {t.noAlerts}
-            </div>
-          )}
-        </div>
-      </section>
+                </thead>
+                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                  {dashboardData.recentAlerts.map((alert) => (
+                    <tr key={alert.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                      <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-blue-600 dark:text-blue-400">
+                        <Link href={`/admin/shipments/${alert.shipment}`}>{alert.shipment}</Link>
+                      </td>
+                      <td className="whitespace-nowrap px-6 py-4 text-sm text-red-600 dark:text-red-400 font-medium">
+                        {alert.temperature}
+                      </td>
+                      <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
+                        {alert.limit}
+                      </td>
+                      <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
+                        {alert.time}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <div className="flex h-64 items-center justify-center text-gray-500 dark:text-gray-400">
+                {t.noAlerts}
+              </div>
+            )}
+          </div>
+        </section>
+        
+        {/* Recent Users */}
+        <section className="rounded-lg bg-white shadow-sm dark:bg-gray-800">
+          <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-white">{t.recentUsers}</h2>
+            <Link 
+              href="/admin/users" 
+              className="flex items-center text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+            >
+              {t.viewAll}
+              <ArrowRight className="ml-1 h-4 w-4" />
+            </Link>
+          </div>
+          
+          <div className="overflow-x-auto">
+            {dashboardData?.recentUsers && dashboardData.recentUsers.length > 0 ? (
+              <table className="w-full table-auto">
+                <thead>
+                  <tr className="border-b border-gray-200 bg-gray-50 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:bg-gray-700/50 dark:text-gray-400">
+                    <th className="whitespace-nowrap px-6 py-3">{t.username}</th>
+                    <th className="whitespace-nowrap px-6 py-3">{t.fullName}</th>
+                    <th className="whitespace-nowrap px-6 py-3">{t.email}</th>
+                    <th className="whitespace-nowrap px-6 py-3">{t.recentlyJoined}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                  {dashboardData.recentUsers.map((user) => (
+                    <tr key={user.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                      <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-blue-600 dark:text-blue-400">
+                        <Link href={`/admin/users/${user.id}`}>{user.username}</Link>
+                      </td>
+                      <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
+                        {user.fullName}
+                      </td>
+                      <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
+                        {user.email}
+                      </td>
+                      <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
+                        {user.joinDate}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <div className="flex h-64 items-center justify-center text-gray-500 dark:text-gray-400">
+                {t.noRecentUsers}
+              </div>
+            )}
+          </div>
+        </section>
+      </div>
     </div>
   );
 }

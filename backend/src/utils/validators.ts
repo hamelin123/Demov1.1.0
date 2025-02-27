@@ -260,3 +260,94 @@ export const validateTemperatureLogInput = (data: any) => {
 
   return schema.validate(data);
 };
+
+
+/**
+ * ตรวจสอบข้อมูลผู้ใช้
+ */
+export const validateUserInput = (data: any, isUpdate = false) => {
+  const schema = Joi.object({
+    username: isUpdate ? Joi.string().min(3).max(30).optional() : Joi.string().min(3).max(30).required()
+      .pattern(new RegExp('^[a-zA-Z0-9_]+$'))
+      .messages({
+        'string.base': 'Username should be a string',
+        'string.empty': 'Username is required',
+        'string.min': 'Username should have a minimum length of {#limit}',
+        'string.max': 'Username should have a maximum length of {#limit}',
+        'string.pattern.base': 'Username should only contain alphanumeric characters and underscores',
+        'any.required': 'Username is required'
+      }),
+    email: isUpdate ? Joi.string().email().optional() : Joi.string().email().required()
+      .messages({
+        'string.base': 'Email should be a string',
+        'string.empty': 'Email is required',
+        'string.email': 'Please enter a valid email',
+        'any.required': 'Email is required'
+      }),
+    password: isUpdate ? Joi.string().min(8).optional() : Joi.string().min(8).required()
+      .pattern(new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])'))
+      .messages({
+        'string.base': 'Password should be a string',
+        'string.empty': 'Password is required',
+        'string.min': 'Password should have a minimum length of {#limit}',
+        'string.pattern.base': 'Password must contain at least one uppercase letter, one lowercase letter, and one number',
+        'any.required': 'Password is required'
+      }),
+    full_name: isUpdate ? Joi.string().min(2).max(50).optional() : Joi.string().min(2).max(50).required()
+      .messages({
+        'string.base': 'Full name should be a string',
+        'string.empty': 'Full name is required',
+        'string.min': 'Full name should have a minimum length of {#limit}',
+        'string.max': 'Full name should have a maximum length of {#limit}',
+        'any.required': 'Full name is required'
+      }),
+    role: Joi.string().valid('admin', 'staff', 'user').optional()
+      .messages({
+        'string.base': 'Role should be a string',
+        'any.only': 'Role must be one of: admin, staff, user'
+      }),
+    status: Joi.string().valid('active', 'inactive').optional()
+      .messages({
+        'string.base': 'Status should be a string',
+        'any.only': 'Status must be one of: active, inactive'
+      }),
+    phone_number: Joi.string().pattern(new RegExp('^[0-9]{10}$')).optional()
+      .messages({
+        'string.pattern.base': 'Phone number must be a 10-digit number'
+      }),
+    address: Joi.string().max(200).optional()
+      .messages({
+        'string.max': 'Address should have a maximum length of {#limit}'
+      })
+  });
+
+  return schema.validate(data);
+};
+
+/**
+ * Schema สำหรับการอัปเดตสถานะผู้ใช้
+ */
+export const updateUserStatusSchema = Joi.object({
+  status: Joi.string().valid('active', 'inactive').required()
+    .messages({
+      'string.base': 'Status should be a string',
+      'any.only': 'Status must be one of: active, inactive',
+      'any.required': 'Status is required'
+    })
+});
+
+/**
+ * Export schemas สำหรับใช้ใน middleware
+ */
+export const userSchema = Joi.object({
+  username: Joi.string().min(3).max(30).required()
+    .pattern(new RegExp('^[a-zA-Z0-9_]+$')),
+  email: Joi.string().email().required(),
+  password: Joi.string().min(8).required()
+    .pattern(new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])')),
+  full_name: Joi.string().min(2).max(50).required(),
+  role: Joi.string().valid('admin', 'staff', 'user').optional(),
+  status: Joi.string().valid('active', 'inactive').optional(),
+  phone_number: Joi.string().pattern(new RegExp('^[0-9]{10}$')).optional(),
+  address: Joi.string().max(200).optional()
+});
