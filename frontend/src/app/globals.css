@@ -17,6 +17,7 @@
   --heading-color: #0066FF;
 }
 
+/* เพิ่มเติมหลังจากคำสั่ง .dark ที่คุณมีอยู่แล้ว */
 .dark {
   --background-color: #0A1929;
   --text-color: #FFFFFF;
@@ -28,8 +29,19 @@
   --footer-text-color: #E5E7EB;
   --section-bg-color: #111827;
   --heading-color: #60A5FA;
+  /* เพิ่มความคมชัดให้กับปุ่มและองค์ประกอบอื่นๆ */
+  --button-highlight: #3B82F6;
+  --card-highlight: #2563EB;
 }
 
+/* ปรับปรุงสีปุ่มให้มีความคมชัดมากขึ้นในโหมดกลางคืน */
+.dark .btn-primary {
+  @apply bg-blue-500 hover:bg-blue-400;
+}
+
+.dark .btn-secondary {
+  @apply border-blue-400 text-blue-300 hover:bg-blue-800/30;
+}
 /* Base Styles */
 body {
   background-color: var(--background-color);
@@ -129,4 +141,56 @@ body {
   font-size: 2rem;
   margin-bottom: 2rem;
   text-align: center;
+}
+
+/* ทำให้การเปลี่ยนธีมมีความราบรื่นแต่รวดเร็ว */
+.theme-transition {
+  transition: background-color 0.2s ease-in-out, 
+              color 0.2s ease-in-out, 
+              border-color 0.2s ease-in-out,
+              box-shadow 0.2s ease-in-out;
+}
+
+/* ให้มั่นใจว่าเนื้อหาที่มองเห็นได้ชัดเจนในทุกธีม */
+.text-adaptive {
+  @apply text-gray-900 dark:text-gray-100;
+}
+
+.bg-adaptive {
+  @apply bg-white dark:bg-gray-800;
+}
+
+/* เพิ่มความโดดเด่นให้กับการ์ดบริการ */
+.service-card {
+  @apply bg-white dark:bg-gray-800 
+         shadow-md dark:shadow-gray-900/30
+         hover:shadow-lg dark:hover:shadow-blue-900/20
+         border border-gray-100 dark:border-gray-700
+         rounded-xl overflow-hidden
+         transition-all duration-300;
+}
+
+.service-card:hover {
+  @apply transform -translate-y-1;
+}
+
+.service-icon {
+  @apply text-blue-600 dark:text-blue-400 p-3 
+         bg-blue-50 dark:bg-blue-900/20
+         rounded-full w-16 h-16 flex items-center justify-center
+         mx-auto mb-4;
+}
+/* ทำให้ปุ่มเปลี่ยนภาษาโดดเด่นขึ้น */
+.language-switcher {
+  @apply flex items-center p-2 
+         bg-gray-100 dark:bg-gray-700
+         hover:bg-gray-200 dark:hover:bg-gray-600
+         text-gray-700 dark:text-gray-300
+         rounded-md transition-colors duration-300;
+}
+
+.language-switcher-active {
+  @apply bg-blue-100 dark:bg-blue-900 
+         text-blue-700 dark:text-blue-300
+         hover:bg-blue-200 dark:hover:bg-blue-800;
 }

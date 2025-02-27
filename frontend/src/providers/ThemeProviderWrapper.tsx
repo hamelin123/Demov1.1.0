@@ -1,7 +1,9 @@
+// src/providers/ThemeProviderWrapper.tsx
 'use client';
 
 import { ThemeProvider } from 'next-themes';
 import React from 'react';
+import { LanguageProvider } from './LanguageProvider';
 
 export default function ThemeProviderWrapper({
   children,
@@ -10,7 +12,9 @@ export default function ThemeProviderWrapper({
 }) {
   return (
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
-      {children}
+      <LanguageProvider>
+        {children}
+      </LanguageProvider>
     </ThemeProvider>
   );
 }

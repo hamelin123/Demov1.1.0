@@ -1,87 +1,35 @@
+// src/components/Footer.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Facebook, Twitter, Instagram, Linkedin, MapPin, Phone, Mail } from 'lucide-react';
-import { useTheme } from '@/providers/ThemeProvider'; // แก้ไขการ import
+import { useLanguage } from '@/providers/LanguageProvider';
+import { useEffect, useState } from 'react';
 
 export function Footer() {
-  const { theme } = useTheme(); // ใช้ theme จาก ThemeProvider
-  const [language, setLanguage] = useState('en');
+  const { language, t } = useLanguage();
+  const [mounted, setMounted] = useState(false);
   
-  // Load preferences
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const storedLanguage = localStorage.getItem('language') || 'en';
-      setLanguage(storedLanguage);
-    }
+    setMounted(true);
   }, []);
   
-  // Listen for changes
-  useEffect(() => {
-    const handleChange = () => {
-      if (typeof window !== 'undefined') {
-        const storedLanguage = localStorage.getItem('language') || 'en';
-        setLanguage(storedLanguage);
-      }
-    };
-    
-    window.addEventListener('storage', handleChange);
-    window.addEventListener('languageChange', handleChange);
-    
-    return () => {
-      window.removeEventListener('storage', handleChange);
-      window.removeEventListener('languageChange', handleChange);
-    };
-  }, []);
-
-  // Translations
-  const translations = {
-    en: {
-      companyDescription: "Premium temperature-controlled logistics solutions for pharmaceutical, food, and other temperature-sensitive products.",
-      quickLinks: "Quick Links",
-      aboutUs: "About Us",
-      ourServices: "Our Services",
-      trackShipment: "Track Shipment",
-      faq: "FAQ",
-      services: "Services",
-      temperatureControl: "Temperature Control",
-      realTimeTracking: "Real-Time Tracking",
-      qualityAssurance: "Quality Assurance",
-      coldStorage: "Cold Storage",
-      contactInfo: "Contact Us",
-      address: "123 Logistics Way, Bangkok, Thailand 10110",
-      copyright: "© 2025 ColdChain Logistics. All rights reserved."
-    },
-    th: {
-      companyDescription: "โซลูชันโลจิสติกส์ควบคุมอุณหภูมิระดับพรีเมียมสำหรับผลิตภัณฑ์ยา อาหาร และผลิตภัณฑ์ที่ไวต่ออุณหภูมิอื่นๆ",
-      quickLinks: "ลิงก์ด่วน",
-      aboutUs: "เกี่ยวกับเรา",
-      ourServices: "บริการของเรา",
-      trackShipment: "ติดตามการจัดส่ง",
-      faq: "คำถามที่พบบ่อย",
-      services: "บริการ",
-      temperatureControl: "การควบคุมอุณหภูมิ",
-      realTimeTracking: "การติดตามแบบเรียลไทม์",
-      qualityAssurance: "การรับประกันคุณภาพ",
-      coldStorage: "คลังเย็น",
-      contactInfo: "ติดต่อเรา",
-      address: "123 โลจิสติกส์เวย์, กรุงเทพฯ, ประเทศไทย 10110",
-      copyright: "© 2025 ColdChain Logistics สงวนลิขสิทธิ์"
-    }
-  };
-
-  // Get translations
-  const t = translations[language];
+  if (!mounted) {
+    return <footer className="py-6 bg-[#0f172a]"></footer>;
+  }
 
   return (
-    <footer className="footer py-12">
+    <footer className="footer py-12 bg-[#0f172a]">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Company Info */}
           <div>
             <h2 className="text-xl font-bold text-white mb-4">ColdChain</h2>
-            <p className="mb-4">{t.companyDescription}</p>
+            <p className="mb-4 text-gray-300">
+              {language === 'en' 
+                ? "Premium temperature-controlled logistics solutions for pharmaceutical, food, and other temperature-sensitive products."
+                : "โซลูชันโลจิสติกส์ควบคุมอุณหภูมิระดับพรีเมียมสำหรับผลิตภัณฑ์ยา อาหาร และผลิตภัณฑ์ที่ไวต่ออุณหภูมิอื่นๆ"}
+            </p>
             <div className="flex space-x-4">
               <Link href="#" className="text-gray-300 hover:text-white transition duration-300">
                 <Facebook size={20} />
@@ -100,26 +48,28 @@ export function Footer() {
           
           {/* Quick Links */}
           <div>
-            <h3 className="text-lg font-semibold text-white mb-4">{t.quickLinks}</h3>
+            <h3 className="text-lg font-semibold text-white mb-4">
+              {language === 'en' ? 'Quick Links' : 'ลิงก์ด่วน'}
+            </h3>
             <ul className="space-y-2">
               <li>
                 <Link href="/about" className="text-gray-300 hover:text-white transition duration-300">
-                  {t.aboutUs}
+                  {language === 'en' ? 'About Us' : 'เกี่ยวกับเรา'}
                 </Link>
               </li>
               <li>
                 <Link href="/services" className="text-gray-300 hover:text-white transition duration-300">
-                  {t.ourServices}
+                  {t('services', 'navigation')}
                 </Link>
               </li>
               <li>
                 <Link href="/tracking" className="text-gray-300 hover:text-white transition duration-300">
-                  {t.trackShipment}
+                  {t('tracking', 'navigation')}
                 </Link>
               </li>
               <li>
-                <Link href="/faq" className="text-gray-300 hover:text-white transition duration-300">
-                  {t.faq}
+                <Link href="/contact" className="text-gray-300 hover:text-white transition duration-300">
+                  {t('contact', 'navigation')}
                 </Link>
               </li>
             </ul>
@@ -127,26 +77,28 @@ export function Footer() {
           
           {/* Services */}
           <div>
-            <h3 className="text-lg font-semibold text-white mb-4">{t.services}</h3>
+            <h3 className="text-lg font-semibold text-white mb-4">
+              {t('services', 'navigation')}
+            </h3>
             <ul className="space-y-2">
               <li>
                 <Link href="/services#temperature-control" className="text-gray-300 hover:text-white transition duration-300">
-                  {t.temperatureControl}
+                  {language === 'en' ? 'Temperature Control' : 'การควบคุมอุณหภูมิ'}
                 </Link>
               </li>
               <li>
                 <Link href="/services#real-time-tracking" className="text-gray-300 hover:text-white transition duration-300">
-                  {t.realTimeTracking}
+                  {language === 'en' ? 'Real-Time Tracking' : 'การติดตามแบบเรียลไทม์'}
                 </Link>
               </li>
               <li>
                 <Link href="/services#quality-assurance" className="text-gray-300 hover:text-white transition duration-300">
-                  {t.qualityAssurance}
+                  {language === 'en' ? 'Quality Assurance' : 'การรับประกันคุณภาพ'}
                 </Link>
               </li>
               <li>
                 <Link href="/services#cold-storage" className="text-gray-300 hover:text-white transition duration-300">
-                  {t.coldStorage}
+                  {language === 'en' ? 'Cold Storage' : 'คลังเย็น'}
                 </Link>
               </li>
             </ul>
@@ -154,11 +106,17 @@ export function Footer() {
           
           {/* Contact */}
           <div>
-            <h3 className="text-lg font-semibold text-white mb-4">{t.contactInfo}</h3>
+            <h3 className="text-lg font-semibold text-white mb-4">
+              {t('contact', 'navigation')}
+            </h3>
             <ul className="space-y-2">
               <li className="flex items-start">
                 <MapPin size={18} className="mr-2 mt-1 flex-shrink-0 text-blue-300" />
-                <span className="text-gray-300">{t.address}</span>
+                <span className="text-gray-300">
+                  {language === 'en' 
+                    ? '123 Logistics Way, Bangkok, Thailand 10110'
+                    : '123 โลจิสติกส์เวย์, กรุงเทพฯ, ประเทศไทย 10110'}
+                </span>
               </li>
               <li className="flex items-center">
                 <Phone size={18} className="mr-2 flex-shrink-0 text-blue-300" />
@@ -173,8 +131,12 @@ export function Footer() {
         </div>
 
         {/* Copyright */}
-        <div className="border-t border-gray-800 dark:border-gray-700 mt-12 pt-8 text-center">
-          <p>{t.copyright}</p>
+        <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-300">
+          <p>
+            {language === 'en'
+              ? '© 2025 ColdChain Logistics. All rights reserved.'
+              : '© 2025 ColdChain Logistics สงวนลิขสิทธิ์'}
+          </p>
         </div>
       </div>
     </footer>

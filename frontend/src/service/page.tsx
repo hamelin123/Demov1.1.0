@@ -1,141 +1,179 @@
-import { Metadata } from 'next';
-import ClientWrapper from '@/components/ClientWrapper';
+// src/app/services/page.tsx
+'use client';
 
-export const metadata: Metadata = {
-  title: 'ColdChain - Our Services',
-  description: 'Temperature controlled logistics and cold chain services for pharmaceutical, food, and other temperature-sensitive products.',
-};
+import { useLanguage } from '@/providers/LanguageProvider';
+import { ThermometerSnowflake, BarChart3, Warehouse, Package, Shield, UserCog } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Navbar } from '@/components/Navbar';
+import { Footer } from '@/components/Footer';
 
 export default function ServicesPage() {
+  const { language, t } = useLanguage();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return <div className="min-h-screen bg-white dark:bg-[#0f172a] flex flex-col">
+      <Navbar />
+      <div className="flex-grow">
+        <div className="animate-pulse h-screen"></div>
+      </div>
+      <Footer />
+    </div>;
+  }
+
   return (
-    <ClientWrapper>
-      <div className="container mx-auto px-4 py-12">
-        <h1 className="text-4xl font-bold mb-8 text-center">Our Services</h1>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {/* Temperature-Controlled Transportation */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 transition-transform hover:scale-105">
-            <div className="flex items-center justify-center w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full mb-4 mx-auto">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-600 dark:text-blue-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-              </svg>
+    <div className="min-h-screen bg-white dark:bg-[#0f172a] flex flex-col">
+      <Navbar />
+      <div className="flex-grow">
+        <div className="container mx-auto px-4 py-12">
+          <h1 className="text-4xl font-bold mb-8 text-center">
+            {language === 'en' ? 'Our Services' : 'บริการของเรา'}
+          </h1>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {/* Temperature-Controlled Transportation */}
+            <div className="bg-white dark:bg-[#1e293b] rounded-lg shadow-md p-6 transition-transform hover:scale-105">
+              <div className="flex items-center justify-center w-16 h-16 bg-blue-100 dark:bg-blue-800 rounded-full mb-4 mx-auto">
+                <ThermometerSnowflake size={32} className="text-blue-600 dark:text-white" />
+              </div>
+              <h2 className="text-xl font-semibold mb-3 text-center text-gray-900 dark:text-white">
+                {language === 'en' ? 'Temperature-Controlled Transportation' : 'การขนส่งแบบควบคุมอุณหภูมิ'}
+              </h2>
+              <p className="text-gray-600 dark:text-gray-300 text-center">
+                {language === 'en' 
+                  ? 'Safe and reliable transportation solutions for temperature-sensitive products with precise temperature control.'
+                  : 'โซลูชันการขนส่งที่ปลอดภัยและเชื่อถือได้สำหรับผลิตภัณฑ์ที่ไวต่ออุณหภูมิด้วยการควบคุมอุณหภูมิที่แม่นยำ'}
+              </p>
             </div>
-            <h2 className="text-xl font-semibold mb-3 text-center">Temperature-Controlled Transportation</h2>
-            <p className="text-gray-600 dark:text-gray-300 text-center">
-              Safe and reliable transportation solutions for temperature-sensitive products with precise temperature control.
-            </p>
+            
+            {/* Temperature Monitoring */}
+            <div className="bg-white dark:bg-[#1e293b] rounded-lg shadow-md p-6 transition-transform hover:scale-105">
+              <div className="flex items-center justify-center w-16 h-16 bg-green-100 dark:bg-green-800 rounded-full mb-4 mx-auto">
+                <BarChart3 size={32} className="text-green-600 dark:text-white" />
+              </div>
+              <h2 className="text-xl font-semibold mb-3 text-center text-gray-900 dark:text-white">
+                {language === 'en' ? 'Temperature Monitoring' : 'การติดตามอุณหภูมิ'}
+              </h2>
+              <p className="text-gray-600 dark:text-gray-300 text-center">
+                {language === 'en'
+                  ? 'Real-time temperature monitoring systems to ensure product integrity throughout the supply chain.'
+                  : 'ระบบติดตามอุณหภูมิแบบเรียลไทม์เพื่อให้มั่นใจในความสมบูรณ์ของผลิตภัณฑ์ตลอดห่วงโซ่อุปทาน'}
+              </p>
+            </div>
+            
+            {/* Cold Storage Warehousing */}
+            <div className="bg-white dark:bg-[#1e293b] rounded-lg shadow-md p-6 transition-transform hover:scale-105">
+              <div className="flex items-center justify-center w-16 h-16 bg-purple-100 dark:bg-purple-800 rounded-full mb-4 mx-auto">
+                <Warehouse size={32} className="text-purple-600 dark:text-white" />
+              </div>
+              <h2 className="text-xl font-semibold mb-3 text-center text-gray-900 dark:text-white">
+                {language === 'en' ? 'Cold Storage Warehousing' : 'คลังสินค้าห้องเย็น'}
+              </h2>
+              <p className="text-gray-600 dark:text-gray-300 text-center">
+                {language === 'en'
+                  ? 'Temperature-controlled warehousing facilities for short and long-term storage needs.'
+                  : 'สิ่งอำนวยความสะดวกในการจัดเก็บควบคุมอุณหภูมิสำหรับความต้องการจัดเก็บระยะสั้นและระยะยาว'}
+              </p>
+            </div>
+            
+            {/* Specialized Packaging */}
+            <div className="bg-white dark:bg-[#1e293b] rounded-lg shadow-md p-6 transition-transform hover:scale-105">
+              <div className="flex items-center justify-center w-16 h-16 bg-yellow-100 dark:bg-yellow-800 rounded-full mb-4 mx-auto">
+                <Package size={32} className="text-yellow-600 dark:text-white" />
+              </div>
+              <h2 className="text-xl font-semibold mb-3 text-center text-gray-900 dark:text-white">
+                {language === 'en' ? 'Specialized Packaging' : 'บรรจุภัณฑ์เฉพาะทาง'}
+              </h2>
+              <p className="text-gray-600 dark:text-gray-300 text-center">
+                {language === 'en'
+                  ? 'Innovative packaging solutions designed to maintain temperature requirements during transit.'
+                  : 'โซลูชันบรรจุภัณฑ์นวัตกรรมที่ออกแบบมาเพื่อรักษาข้อกำหนดด้านอุณหภูมิระหว่างการขนส่ง'}
+              </p>
+            </div>
+            
+            {/* Cold Chain Consulting */}
+            <div className="bg-white dark:bg-[#1e293b] rounded-lg shadow-md p-6 transition-transform hover:scale-105">
+              <div className="flex items-center justify-center w-16 h-16 bg-red-100 dark:bg-red-800 rounded-full mb-4 mx-auto">
+                <UserCog size={32} className="text-red-600 dark:text-white" />
+              </div>
+              <h2 className="text-xl font-semibold mb-3 text-center text-gray-900 dark:text-white">
+                {language === 'en' ? 'Cold Chain Consulting' : 'ที่ปรึกษาซัพพลายเชนความเย็น'}
+              </h2>
+              <p className="text-gray-600 dark:text-gray-300 text-center">
+                {language === 'en'
+                  ? 'Expert advice on optimizing your cold chain logistics for maximum efficiency and compliance.'
+                  : 'คำแนะนำจากผู้เชี่ยวชาญในการปรับโลจิสติกส์ซัพพลายเชนความเย็นให้เหมาะสมเพื่อประสิทธิภาพและการปฏิบัติตามกฎระเบียบสูงสุด'}
+              </p>
+            </div>
+            
+            {/* Quality Assurance */}
+            <div className="bg-white dark:bg-[#1e293b] rounded-lg shadow-md p-6 transition-transform hover:scale-105">
+              <div className="flex items-center justify-center w-16 h-16 bg-indigo-100 dark:bg-indigo-800 rounded-full mb-4 mx-auto">
+                <Shield size={32} className="text-indigo-600 dark:text-white" />
+              </div>
+              <h2 className="text-xl font-semibold mb-3 text-center text-gray-900 dark:text-white">
+                {language === 'en' ? 'Quality Assurance' : 'การประกันคุณภาพ'}
+              </h2>
+              <p className="text-gray-600 dark:text-gray-300 text-center">
+                {language === 'en'
+                  ? 'Comprehensive quality management systems to ensure regulatory compliance and product safety.'
+                  : 'ระบบการจัดการคุณภาพที่ครอบคลุมเพื่อให้มั่นใจในการปฏิบัติตามกฎระเบียบและความปลอดภัยของผลิตภัณฑ์'}
+              </p>
+            </div>
           </div>
           
-          {/* Temperature Monitoring */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 transition-transform hover:scale-105">
-            <div className="flex items-center justify-center w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full mb-4 mx-auto">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-green-600 dark:text-green-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
+          <div className="mt-16">
+            <h2 className="text-2xl font-bold mb-6 text-center text-gray-900 dark:text-white">
+              {language === 'en' ? 'Industries We Serve' : 'อุตสาหกรรมที่เราให้บริการ'}
+            </h2>
+            <div className="bg-white dark:bg-[#1e293b] rounded-lg shadow-lg p-8">
+              <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <li className="flex items-center text-gray-600 dark:text-gray-300">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  {language === 'en' ? 'Pharmaceutical' : 'ยาและเวชภัณฑ์'}
+                </li>
+                <li className="flex items-center text-gray-600 dark:text-gray-300">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  {language === 'en' ? 'Food & Beverage' : 'อาหารและเครื่องดื่ม'}
+                </li>
+                <li className="flex items-center text-gray-600 dark:text-gray-300">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  {language === 'en' ? 'Biotech & Life Sciences' : 'เทคโนโลยีชีวภาพและวิทยาศาสตร์ชีวิต'}
+                </li>
+                <li className="flex items-center text-gray-600 dark:text-gray-300">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  {language === 'en' ? 'Chemical Products' : 'ผลิตภัณฑ์เคมี'}
+                </li>
+                <li className="flex items-center text-gray-600 dark:text-gray-300">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  {language === 'en' ? 'Flowers & Plants' : 'ดอกไม้และพืช'}
+                </li>
+                <li className="flex items-center text-gray-600 dark:text-gray-300">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  {language === 'en' ? 'Medical Supplies' : 'อุปกรณ์ทางการแพทย์'}
+                </li>
+              </ul>
             </div>
-            <h2 className="text-xl font-semibold mb-3 text-center">Temperature Monitoring</h2>
-            <p className="text-gray-600 dark:text-gray-300 text-center">
-              Real-time temperature monitoring systems to ensure product integrity throughout the supply chain.
-            </p>
-          </div>
-          
-          {/* Warehousing */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 transition-transform hover:scale-105">
-            <div className="flex items-center justify-center w-16 h-16 bg-purple-100 dark:bg-purple-900 rounded-full mb-4 mx-auto">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-purple-600 dark:text-purple-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-              </svg>
-            </div>
-            <h2 className="text-xl font-semibold mb-3 text-center">Cold Storage Warehousing</h2>
-            <p className="text-gray-600 dark:text-gray-300 text-center">
-              Temperature-controlled warehousing facilities for short and long-term storage needs.
-            </p>
-          </div>
-          
-          {/* Packaging Solutions */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 transition-transform hover:scale-105">
-            <div className="flex items-center justify-center w-16 h-16 bg-yellow-100 dark:bg-yellow-900 rounded-full mb-4 mx-auto">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-yellow-600 dark:text-yellow-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-              </svg>
-            </div>
-            <h2 className="text-xl font-semibold mb-3 text-center">Specialized Packaging</h2>
-            <p className="text-gray-600 dark:text-gray-300 text-center">
-              Innovative packaging solutions designed to maintain temperature requirements during transit.
-            </p>
-          </div>
-          
-          {/* Consulting */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 transition-transform hover:scale-105">
-            <div className="flex items-center justify-center w-16 h-16 bg-red-100 dark:bg-red-900 rounded-full mb-4 mx-auto">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-red-600 dark:text-red-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-              </svg>
-            </div>
-            <h2 className="text-xl font-semibold mb-3 text-center">Cold Chain Consulting</h2>
-            <p className="text-gray-600 dark:text-gray-300 text-center">
-              Expert advice on optimizing your cold chain logistics for maximum efficiency and compliance.
-            </p>
-          </div>
-          
-          {/* Quality Assurance */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 transition-transform hover:scale-105">
-            <div className="flex items-center justify-center w-16 h-16 bg-indigo-100 dark:bg-indigo-900 rounded-full mb-4 mx-auto">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-indigo-600 dark:text-indigo-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-              </svg>
-            </div>
-            <h2 className="text-xl font-semibold mb-3 text-center">Quality Assurance</h2>
-            <p className="text-gray-600 dark:text-gray-300 text-center">
-              Comprehensive quality management systems to ensure regulatory compliance and product safety.
-            </p>
-          </div>
-        </div>
-        
-        <div className="mt-16">
-          <h2 className="text-2xl font-bold mb-6 text-center">Industries We Serve</h2>
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
-            <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <li className="flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                Pharmaceutical
-              </li>
-              <li className="flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                Food & Beverage
-              </li>
-              <li className="flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                Biotech & Life Sciences
-              </li>
-              <li className="flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                Chemical Products
-              </li>
-              <li className="flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                Flowers & Plants
-              </li>
-              <li className="flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                Medical Supplies
-              </li>
-            </ul>
           </div>
         </div>
       </div>
-    </ClientWrapper>
+      <Footer />
+    </div>
   );
 }
