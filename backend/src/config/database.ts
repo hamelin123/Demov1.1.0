@@ -1,3 +1,4 @@
+// src/config/database.ts
 import { Pool } from 'pg';
 import bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';

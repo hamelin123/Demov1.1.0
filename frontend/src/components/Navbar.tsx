@@ -75,7 +75,8 @@ export function Navbar() {
   const toggleLanguage = () => {
     const newLanguage = language === 'en' ? 'th' : 'en';
     setLanguage(newLanguage);
-    console.log('Language changed to:', newLanguage);
+    // เพิ่มการ log เพื่อตรวจสอบ
+    console.log('Language toggled to:', newLanguage);
   };
 
   return (

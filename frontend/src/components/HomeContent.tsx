@@ -115,9 +115,9 @@ export function HomeContent() {
             </div>
           </div>
         </section>
-        
-        {/* CTA Section */}
-        <section className="cta-section py-16 bg-blue-600 dark:bg-blue-800 text-white transition-colors duration-300">
+
+{/* CTA Section - เปลี่ยนเฉพาะสีพื้นหลังในธีมสว่างให้อ่อนลง */}
+        <section className="py-16 bg-blue-300 dark:bg-blue-600 text-white">
           <div className="container mx-auto px-4 text-center">
             <h2 className="text-3xl font-bold mb-4">
               {language === 'en' ? "Ready to Get Started?" : "พร้อมที่จะเริ่มต้นหรือยัง?"}
@@ -132,7 +132,7 @@ export function HomeContent() {
             </Link>
           </div>
         </section>
-      </main>
-    </div>
-  );
-}
+            </main>
+          </div>
+        );
+      }

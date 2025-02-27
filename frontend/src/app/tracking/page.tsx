@@ -206,41 +206,47 @@ export default function TrackingPage() {
     }
   };
 
-  // ค้นหาข้อมูลการติดตาม
-  const handleTrackingSearch = async (number = trackingNumber) => {
-    if (!number) {
-      setTrackingError(t.error);
-      return;
-    }
+      // ค้นหาข้อมูลการติดตาม
+    // ส่วนของฟังก์ชัน handleTrackingSearch ใน src/app/tracking/page.tsx
+// ค้นหาข้อมูลการติดตาม
+    const handleTrackingSearch = async (number = trackingNumber) => {
+      if (!number) {
+        setTrackingError(t.error);
+        return;
+      }
 
-    setIsLoading(true);
-    setTrackingError('');
+      setIsLoading(true);
+      setTrackingError('');
 
-    try {
-      // สำหรับโปรดักชัน ควรเรียกใช้ API จริง
-      // const response = await fetch(`/api/tracking/${number}`);
-      // const data = await response.json();
+      try {
+        // จำลองการรอข้อมูล
+        await new Promise(resolve => setTimeout(resolve, 1000));
 
-      // จำลองการรอข้อมูล
-      await new Promise(resolve => setTimeout(resolve, 1000));
+        // เพิ่มช่องทางค้นหาโดยไม่สนใจตัวพิมพ์ใหญ่-เล็ก และตัดช่องว่าง
+        const normalizedInput = number.trim().toUpperCase();
+        
+        // ตรวจสอบว่าหมายเลขติดตามที่ระบุตรงกับหมายเลขใน mockTrackingData หรือไม่
+        const matchingTrackingKey = Object.keys(mockTrackingData).find(key => 
+          key.toUpperCase() === normalizedInput
+        );
 
-      // ใช้ข้อมูลจำลองสำหรับการทดสอบ
-      if (mockTrackingData[number]) {
-        setTrackingResult(mockTrackingData[number]);
-        // อัปเดต URL ด้วย query param
-        const newUrl = `${window.location.pathname}?tracking=${number}`;
-        window.history.pushState({ path: newUrl }, '', newUrl);
-      } else {
+        if (matchingTrackingKey) {
+          setTrackingResult(mockTrackingData[matchingTrackingKey]);
+          // อัปเดต URL ด้วย query param
+          const newUrl = `${window.location.pathname}?tracking=${matchingTrackingKey}`;
+          window.history.pushState({ path: newUrl }, '', newUrl);
+        } else {
+          setTrackingError(t.error);
+          setTrackingResult(null);
+        }
+      } catch (err) {
+        console.error('Tracking error:', err);
         setTrackingError(t.error);
         setTrackingResult(null);
+      } finally {
+        setIsLoading(false);
       }
-    } catch (err) {
-      console.error('Tracking error:', err);
-      setTrackingError(t.error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    };
 
   const handleSubmit = (e) => {
     e.preventDefault();

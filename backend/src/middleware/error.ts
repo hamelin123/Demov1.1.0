@@ -1,3 +1,4 @@
+// src/middleware/error.ts
 import { Request, Response, NextFunction } from 'express';
 
 export interface AppError extends Error {
@@ -14,7 +15,8 @@ export const errorHandler = (
   res: Response,
   next: NextFunction
 ) => {
-  console.error(err);
+  // บันทึกข้อผิดพลาดสำหรับการแก้ไขปัญหา
+  console.error('Server Error:', err);
 
   // ตรวจสอบประเภทของข้อผิดพลาด
   if (err.name === 'ValidationError') {
@@ -45,7 +47,8 @@ export const errorHandler = (
   // ส่งกลับข้อผิดพลาด
   res.status(statusCode).json({
     message,
-    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
+    error: process.env.NODE_ENV === 'development' ? err : {}
   });
 };
 

@@ -3,8 +3,9 @@ import { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import ThemeProviderWrapper from '@/providers/ThemeProviderWrapper';
-import { Navbar } from '@/components/Navbar';
-import { Footer } from '@/components/Footer';
+// ไม่ต้อง import Navbar และ Footer อีกต่อไป
+// import { Navbar } from '@/components/Navbar';
+// import { Footer } from '@/components/Footer';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -23,11 +24,11 @@ export default function RootLayout({
       <body className={inter.className}>
         <ThemeProviderWrapper>
           <div className="flex flex-col min-h-screen">
-            <Navbar />
+            {/* ลบ Navbar จากตรงนี้ เพราะควรมีเฉพาะในหน้าที่ต้องการ */}
             <main className="flex-grow">
               {children}
             </main>
-            <Footer />
+            {/* ลบ Footer จากตรงนี้เช่นกัน */}
           </div>
         </ThemeProviderWrapper>
       </body>
