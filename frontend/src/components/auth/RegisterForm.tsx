@@ -2,75 +2,374 @@
 'use client';
 
 import { useState } from 'react';
-import { Button, Input } from '@nextui-org/react';
-import { User, Mail, Lock, Phone } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { User, Mail, Lock, Phone, Building, AlertCircle, CheckCircle } from 'lucide-react';
+import { useLanguage } from '@/providers/LanguageProvider';
 
 export function RegisterForm() {
-  const { t } = useTranslation();
+  const router = useRouter();
+  const { language } = useLanguage();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    phone: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    phone: '',
+    company: '',
+    acceptTerms: false
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const translations = {
+    th: {
+      name: 'ชื่อ-นามสกุล',
+      email: 'อีเมล',
+      phone: 'เบอร์โทรศัพท์',
+      company: 'บริษัท/องค์กร (ไม่จำเป็น)',
+      password: 'รหัสผ่าน',
+      confirmPassword: 'ยืนยันรหัสผ่าน',
+      acceptTerms: 'ฉันยอมรับข้อกำหนดและเงื่อนไข',
+      register: 'ลงทะเบียน',
+      haveAccount: 'มีบัญชีอยู่แล้ว?',
+      login: 'เข้าสู่ระบบ',
+      nameRequired: 'กรุณากรอกชื่อ-นามสกุล',
+      emailRequired: 'กรุณากรอกอีเมล',
+      emailInvalid: 'รูปแบบอีเมลไม่ถูกต้อง',
+      phoneRequired: 'กรุณากรอกเบอร์โทรศัพท์',
+      passwordRequired: 'กรุณากรอกรหัสผ่าน',
+      passwordMinLength: 'รหัสผ่านต้องมีความยาวอย่างน้อย 8 ตัวอักษร',
+      passwordNotMatch: 'รหัสผ่านไม่ตรงกัน',
+      termsRequired: 'กรุณายอมรับข้อกำหนดและเงื่อนไข',
+      registrationSuccess: 'ลงทะเบียนสำเร็จ! กรุณาเข้าสู่ระบบ',
+      registrationFailed: 'การลงทะเบียนล้มเหลว โปรดลองอีกครั้ง'
+    },
+    en: {
+      name: 'Full Name',
+      email: 'Email',
+      phone: 'Phone Number',
+      company: 'Company/Organization (Optional)',
+      password: 'Password',
+      confirmPassword: 'Confirm Password',
+      acceptTerms: 'I accept the terms and conditions',
+      register: 'Register',
+      haveAccount: 'Already have an account?',
+      login: 'Sign in',
+      nameRequired: 'Full name is required',
+      emailRequired: 'Email is required',
+      emailInvalid: 'Invalid email format',
+      phoneRequired: 'Phone number is required',
+      passwordRequired: 'Password is required',
+      passwordMinLength: 'Password must be at least 8 characters long',
+      passwordNotMatch: 'Passwords do not match',
+      termsRequired: 'You must accept the terms and conditions',
+      registrationSuccess: 'Registration successful! Please sign in.',
+      registrationFailed: 'Registration failed. Please try again.'
+    }
+  };
+
+  const t = translations[language] || translations.en;
+
+  const validateEmail = (email) => {
+    const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return re.test(String(email).toLowerCase());
+  };
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    const val = type === 'checkbox' ? checked : value;
+    
+    setFormData(prev => ({
+      ...prev,
+      [name]: val
+    }));
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // TODO: Implement register logic
+    setError('');
+    setSuccess('');
+    
+    // Validate form
+    if (!formData.name) {
+      setError(t.nameRequired);
+      return;
+    }
+    if (!formData.email) {
+      setError(t.emailRequired);
+      return;
+    }
+    if (!validateEmail(formData.email)) {
+      setError(t.emailInvalid);
+      return;
+    }
+    if (!formData.phone) {
+      setError(t.phoneRequired);
+      return;
+    }
+    if (!formData.password) {
+      setError(t.passwordRequired);
+      return;
+    }
+    if (formData.password.length < 8) {
+      setError(t.passwordMinLength);
+      return;
+    }
+    if (formData.password !== formData.confirmPassword) {
+      setError(t.passwordNotMatch);
+      return;
+    }
+    if (!formData.acceptTerms) {
+      setError(t.termsRequired);
+      return;
+    }
+    
+    setIsLoading(true);
+    
+    try {
+      // Prepare data for API
+      const userData = {
+        username: formData.email.split('@')[0], // Create username from email
+        email: formData.email,
+        password: formData.password,
+        full_name: formData.name,
+        phone_number: formData.phone,
+        company: formData.company
+      };
+      
+      // Send to API
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+      const response = await fetch(`${apiUrl}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userData),
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Registration failed');
+      }
+      
+      // Show success message
+      setError('');
+      setSuccess(t.registrationSuccess);
+      
+      // Reset form
+      setFormData({
+        name: '',
+        email: '',
+        password: '',
+        confirmPassword: '',
+        phone: '',
+        company: '',
+        acceptTerms: false
+      });
+      
+      // Redirect to login page after 2 seconds
+      setTimeout(() => {
+        router.push('/auth/login');
+      }, 2000);
+    } catch (err) {
+      console.error('Registration error:', err);
+      setError(err.message || t.registrationFailed);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 w-full max-w-sm">
-      <Input
-        type="text"
-        label={t('auth.name')}
-        value={formData.name}
-        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-        startContent={<User className="text-gray-400" size={20} />}
-        required
-      />
-      <Input
-        type="email"
-        label={t('auth.email')}
-        value={formData.email}
-        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-        startContent={<Mail className="text-gray-400" size={20} />}
-        required
-      />
-      <Input
-        type="tel"
-        label={t('auth.phone')}
-        value={formData.phone}
-        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-        startContent={<Phone className="text-gray-400" size={20} />}
-        required
-      />
-      <Input
-        type="password"
-        label={t('auth.password')}
-        value={formData.password}
-        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-        startContent={<Lock className="text-gray-400" size={20} />}
-        required
-      />
-      <Input
-        type="password"
-        label={t('auth.confirmPassword')}
-        value={formData.confirmPassword}
-        onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-        startContent={<Lock className="text-gray-400" size={20} />}
-        required
-      />
-      <Button
-        type="submit"
-        color="primary"
-        className="w-full"
-        size="lg"
-      >
-        {t('auth.register')}
-      </Button>
-    </form>
+    <div className="w-full max-w-md mx-auto">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {error && (
+          <div className="p-3 rounded-md bg-red-50 text-red-500 dark:bg-red-900/30 dark:text-red-200 flex items-center">
+            <AlertCircle className="h-5 w-5 mr-2 flex-shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
+        
+        {success && (
+          <div className="p-3 rounded-md bg-green-50 text-green-500 dark:bg-green-900/30 dark:text-green-200 flex items-center">
+            <CheckCircle className="h-5 w-5 mr-2 flex-shrink-0" />
+            <span>{success}</span>
+          </div>
+        )}
+        
+        <div>
+          <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            {t.name}
+          </label>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <User className="h-5 w-5 text-gray-400" />
+            </div>
+            <input
+              id="name"
+              name="name"
+              type="text"
+              autoComplete="name"
+              required
+              value={formData.name}
+              onChange={handleChange}
+              className="block w-full pl-10 pr-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              placeholder="John Doe"
+            />
+          </div>
+        </div>
+        
+        <div>
+          <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            {t.email}
+          </label>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Mail className="h-5 w-5 text-gray-400" />
+            </div>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              autoComplete="email"
+              required
+              value={formData.email}
+              onChange={handleChange}
+              className="block w-full pl-10 pr-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              placeholder="you@example.com"
+            />
+          </div>
+        </div>
+        
+        <div>
+          <label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            {t.phone}
+          </label>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Phone className="h-5 w-5 text-gray-400" />
+            </div>
+            <input
+              id="phone"
+              name="phone"
+              type="tel"
+              autoComplete="tel"
+              required
+              value={formData.phone}
+              onChange={handleChange}
+              className="block w-full pl-10 pr-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              placeholder="+66 12 345 6789"
+            />
+          </div>
+        </div>
+        
+        <div>
+          <label htmlFor="company" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            {t.company}
+          </label>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Building className="h-5 w-5 text-gray-400" />
+            </div>
+            <input
+              id="company"
+              name="company"
+              type="text"
+              autoComplete="organization"
+              value={formData.company}
+              onChange={handleChange}
+              className="block w-full pl-10 pr-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Company Name"
+            />
+          </div>
+        </div>
+        
+        <div>
+          <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            {t.password}
+          </label>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Lock className="h-5 w-5 text-gray-400" />
+            </div>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              autoComplete="new-password"
+              required
+              value={formData.password}
+              onChange={handleChange}
+              className="block w-full pl-10 pr-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              placeholder="••••••••"
+              minLength={8}
+            />
+          </div>
+        </div>
+        
+        <div>
+          <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            {t.confirmPassword}
+          </label>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Lock className="h-5 w-5 text-gray-400" />
+            </div>
+            <input
+              id="confirmPassword"
+              name="confirmPassword"
+              type="password"
+              autoComplete="new-password"
+              required
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              className="block w-full pl-10 pr-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              placeholder="••••••••"
+              minLength={8}
+            />
+          </div>
+        </div>
+        
+        <div className="flex items-center">
+          <input
+            id="acceptTerms"
+            name="acceptTerms"
+            type="checkbox"
+            checked={formData.acceptTerms}
+            onChange={handleChange}
+            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            required
+          />
+          <label htmlFor="acceptTerms" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+            {t.acceptTerms}
+          </label>
+        </div>
+        
+        <div>
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isLoading ? (
+              <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            ) : null}
+            {isLoading ? `${t.register}...` : t.register}
+          </button>
+        </div>
+        
+        <div className="text-center mt-4">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            {t.haveAccount}{' '}
+            <Link href="/auth/login" className="font-medium text-blue-600 dark:text-blue-400 hover:underline">
+              {t.login}
+            </Link>
+          </p>
+        </div>
+      </form>
+    </div>
   );
 }
