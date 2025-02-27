@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ThermometerSnowflake, MapPin, Shield } from 'lucide-react';
-import { useTheme } from '@/components/ThemeProvider';
+import { useTheme } from '@/providers/ThemeProvider'; // แก้ไขการ import ให้ใช้ providers
 
 export function HomeContent() {
   const { theme } = useTheme();

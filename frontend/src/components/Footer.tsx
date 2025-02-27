@@ -1,22 +1,19 @@
-// src/components/Footer.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Facebook, Twitter, Instagram, Linkedin, MapPin, Phone, Mail } from 'lucide-react';
-import { useTheme } from '@/providers/ThemeProvider'; // เปลี่ยนจาก '@/components/ThemeProvider'
+import { useTheme } from '@/providers/ThemeProvider'; // แก้ไขการ import
 
 export function Footer() {
+  const { theme } = useTheme(); // ใช้ theme จาก ThemeProvider
   const [language, setLanguage] = useState('en');
-  const [theme, setTheme] = useState('dark');
   
   // Load preferences
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const storedLanguage = localStorage.getItem('language') || 'en';
-      const storedTheme = localStorage.getItem('theme') || 'dark';
       setLanguage(storedLanguage);
-      setTheme(storedTheme);
     }
   }, []);
   
@@ -25,24 +22,18 @@ export function Footer() {
     const handleChange = () => {
       if (typeof window !== 'undefined') {
         const storedLanguage = localStorage.getItem('language') || 'en';
-        const storedTheme = localStorage.getItem('theme') || 'dark';
         setLanguage(storedLanguage);
-        setTheme(storedTheme);
       }
     };
     
     window.addEventListener('storage', handleChange);
     window.addEventListener('languageChange', handleChange);
-    window.addEventListener('themeChange', handleChange);
     
     return () => {
       window.removeEventListener('storage', handleChange);
       window.removeEventListener('languageChange', handleChange);
-      window.removeEventListener('themeChange', handleChange);
     };
   }, []);
-
-  // ... ส่วนที่เหลือของ Footer คงเดิม
 
   // Translations
   const translations = {

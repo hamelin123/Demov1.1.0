@@ -2,10 +2,11 @@
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
-  i18n: {
-    locales: ['en', 'th'],
-    defaultLocale: 'en',
-  },
+  // ลบหรือปรับปรุง i18n configuration ให้เข้ากับ Next.js 14
+  // i18n: {
+  //   locales: ['en', 'th'],
+  //   defaultLocale: 'en',
+  // },
 };
 
 module.exports = nextConfig;

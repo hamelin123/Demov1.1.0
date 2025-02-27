@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { Navbar } from './Navbar';
 import { Footer } from './Footer';
-import { useTheme } from './ThemeProvider';
+import { useTheme } from '@/providers/ThemeProvider'; // แก้ไขการ import ให้ใช้ providers
 
 export default function ClientWrapper({ children }: { children: React.ReactNode }) {
   const { theme } = useTheme();

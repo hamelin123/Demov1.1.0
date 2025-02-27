@@ -3,32 +3,62 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Menu, X, Sun, Moon, Globe } from 'lucide-react';
-import { useTheme } from '@/components/ThemeProvider';
+import { useTheme } from 'next-themes';
 import { setLanguage as setAppLanguage } from '@/lib/languageUtils';
 
 export function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { theme, toggleTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
   const [language, setLanguage] = useState('en');
   
-  // Load language preference
+  // ตรวจสอบว่า component ถูก mount แล้ว
   useEffect(() => {
+    setMounted(true);
+    
     if (typeof window !== 'undefined') {
       const storedLanguage = localStorage.getItem('language') || 'en';
       setLanguage(storedLanguage);
     }
   }, []);
+  
+  // หากยังไม่ mount ก็จะไม่แสดงสถานะเพื่อป้องกัน hydration mismatch
+  if (!mounted) {
+    return <nav className="navbar py-4">
+      <div className="container mx-auto px-4">
+        <div className="flex justify-between items-center">
+          <span className="text-2xl font-bold">ColdChain</span>
+          <div></div>
+        </div>
+      </div>
+    </nav>;
+  }
 
   const toggleMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
   
+  const toggleTheme = () => {
+    setTheme(theme === 'light' ? 'dark' : 'light');
+  };
+  
   const toggleLanguage = () => {
     const newLanguage = language === 'en' ? 'th' : 'en';
     setLanguage(newLanguage);
-    setAppLanguage(newLanguage as 'en' | 'th');
-    localStorage.setItem('language', newLanguage);
-    window.dispatchEvent(new Event('languageChange'));
+    
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('language', newLanguage);
+      
+      if (typeof setAppLanguage === 'function') {
+        setAppLanguage(newLanguage as 'en' | 'th');
+      }
+      
+      window.dispatchEvent(new CustomEvent('languageChange', { 
+        detail: { language: newLanguage } 
+      }));
+      
+      console.log('Language changed to:', newLanguage);
+    }
   };
 
   // Translations
@@ -85,7 +115,7 @@ export function Navbar() {
             {/* Language Toggle */}
             <button 
               onClick={toggleLanguage}
-              className="flex items-center p-2 rounded-full bg-gray-100 dark:bg-gray-800 transition duration-300"
+              className="flex items-center p-2 rounded-full bg-gray-100 dark:bg-gray-800 transition duration-300 cursor-pointer"
               aria-label="Toggle language"
             >
               <Globe size={20} className="mr-1 text-blue-600 dark:text-blue-400" />
@@ -113,12 +143,14 @@ export function Navbar() {
               }
             </button>
             
+            {/* ปุ่มเปลี่ยนภาษาบนมือถือ */}
             <button 
               onClick={toggleLanguage}
-              className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 transition duration-300"
+              className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 transition duration-300 cursor-pointer"
               aria-label="Toggle language"
             >
               <Globe size={20} className="text-blue-600 dark:text-blue-400" />
+              <span className="ml-1 hidden xs:inline">{language === 'en' ? 'TH' : 'EN'}</span>
             </button>
             
             <button 
