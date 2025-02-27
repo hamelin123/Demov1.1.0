@@ -3,7 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import routes from './routes';
 import { initializeDatabase } from './config/database';
-import { errorHandler } from './middleware/error'; // ตรวจสอบว่า path นี้ถูกต้อง
+import { errorHandler } from './middleware/error';
 
 dotenv.config();
 
@@ -16,7 +16,7 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Log middleware (ถ้ามี)
+// Log middleware
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
   next();
@@ -31,9 +31,7 @@ app.get('/', (req, res) => {
 });
 
 // Error handling middleware - ต้องใส่ทั้ง 4 parameters ตามลำดับนี้
-app.use((err, req, res, next) => {
-  errorHandler(err, req, res, next);
-});
+app.use(errorHandler);
 
 // เริ่มต้นฐานข้อมูล
 initializeDatabase()

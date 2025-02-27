@@ -4,35 +4,45 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Facebook, Twitter, Instagram, Linkedin, MapPin, Phone, Mail } from 'lucide-react';
+import { useTheme } from '@/providers/ThemeProvider'; // เปลี่ยนจาก '@/components/ThemeProvider'
 
 export function Footer() {
   const [language, setLanguage] = useState('en');
+  const [theme, setTheme] = useState('dark');
   
-  // Load language preference from localStorage on component mount
+  // Load preferences
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const storedLanguage = localStorage.getItem('language') || 'en';
+      const storedTheme = localStorage.getItem('theme') || 'dark';
       setLanguage(storedLanguage);
+      setTheme(storedTheme);
     }
   }, []);
   
-  // Listen for language changes
+  // Listen for changes
   useEffect(() => {
-    const handleStorageChange = () => {
+    const handleChange = () => {
       if (typeof window !== 'undefined') {
         const storedLanguage = localStorage.getItem('language') || 'en';
+        const storedTheme = localStorage.getItem('theme') || 'dark';
         setLanguage(storedLanguage);
+        setTheme(storedTheme);
       }
     };
     
-    window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('languageChange', handleStorageChange);
+    window.addEventListener('storage', handleChange);
+    window.addEventListener('languageChange', handleChange);
+    window.addEventListener('themeChange', handleChange);
     
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('languageChange', handleStorageChange);
+      window.removeEventListener('storage', handleChange);
+      window.removeEventListener('languageChange', handleChange);
+      window.removeEventListener('themeChange', handleChange);
     };
   }, []);
+
+  // ... ส่วนที่เหลือของ Footer คงเดิม
 
   // Translations
   const translations = {
@@ -70,28 +80,28 @@ export function Footer() {
     }
   };
 
-  // Get translations for current language
+  // Get translations
   const t = translations[language];
 
   return (
-    <footer className="bg-gray-900 text-gray-300">
-      <div className="container mx-auto px-4 py-12">
+    <footer className="footer py-12">
+      <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Company Info */}
           <div>
             <h2 className="text-xl font-bold text-white mb-4">ColdChain</h2>
             <p className="mb-4">{t.companyDescription}</p>
             <div className="flex space-x-4">
-              <Link href="#" className="text-gray-400 hover:text-white transition duration-300">
+              <Link href="#" className="text-gray-300 hover:text-white transition duration-300">
                 <Facebook size={20} />
               </Link>
-              <Link href="#" className="text-gray-400 hover:text-white transition duration-300">
+              <Link href="#" className="text-gray-300 hover:text-white transition duration-300">
                 <Twitter size={20} />
               </Link>
-              <Link href="#" className="text-gray-400 hover:text-white transition duration-300">
+              <Link href="#" className="text-gray-300 hover:text-white transition duration-300">
                 <Instagram size={20} />
               </Link>
-              <Link href="#" className="text-gray-400 hover:text-white transition duration-300">
+              <Link href="#" className="text-gray-300 hover:text-white transition duration-300">
                 <Linkedin size={20} />
               </Link>
             </div>
@@ -102,22 +112,22 @@ export function Footer() {
             <h3 className="text-lg font-semibold text-white mb-4">{t.quickLinks}</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/about" className="hover:text-white transition duration-300">
+                <Link href="/about" className="text-gray-300 hover:text-white transition duration-300">
                   {t.aboutUs}
                 </Link>
               </li>
               <li>
-                <Link href="/services" className="hover:text-white transition duration-300">
+                <Link href="/services" className="text-gray-300 hover:text-white transition duration-300">
                   {t.ourServices}
                 </Link>
               </li>
               <li>
-                <Link href="/tracking" className="hover:text-white transition duration-300">
+                <Link href="/tracking" className="text-gray-300 hover:text-white transition duration-300">
                   {t.trackShipment}
                 </Link>
               </li>
               <li>
-                <Link href="/faq" className="hover:text-white transition duration-300">
+                <Link href="/faq" className="text-gray-300 hover:text-white transition duration-300">
                   {t.faq}
                 </Link>
               </li>
@@ -129,22 +139,22 @@ export function Footer() {
             <h3 className="text-lg font-semibold text-white mb-4">{t.services}</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/services#temperature-control" className="hover:text-white transition duration-300">
+                <Link href="/services#temperature-control" className="text-gray-300 hover:text-white transition duration-300">
                   {t.temperatureControl}
                 </Link>
               </li>
               <li>
-                <Link href="/services#real-time-tracking" className="hover:text-white transition duration-300">
+                <Link href="/services#real-time-tracking" className="text-gray-300 hover:text-white transition duration-300">
                   {t.realTimeTracking}
                 </Link>
               </li>
               <li>
-                <Link href="/services#quality-assurance" className="hover:text-white transition duration-300">
+                <Link href="/services#quality-assurance" className="text-gray-300 hover:text-white transition duration-300">
                   {t.qualityAssurance}
                 </Link>
               </li>
               <li>
-                <Link href="/services#cold-storage" className="hover:text-white transition duration-300">
+                <Link href="/services#cold-storage" className="text-gray-300 hover:text-white transition duration-300">
                   {t.coldStorage}
                 </Link>
               </li>
@@ -156,23 +166,23 @@ export function Footer() {
             <h3 className="text-lg font-semibold text-white mb-4">{t.contactInfo}</h3>
             <ul className="space-y-2">
               <li className="flex items-start">
-                <MapPin size={18} className="mr-2 mt-1 flex-shrink-0" />
-                <span>{t.address}</span>
+                <MapPin size={18} className="mr-2 mt-1 flex-shrink-0 text-blue-300" />
+                <span className="text-gray-300">{t.address}</span>
               </li>
               <li className="flex items-center">
-                <Phone size={18} className="mr-2 flex-shrink-0" />
-                <span>+66 2 123 4567</span>
+                <Phone size={18} className="mr-2 flex-shrink-0 text-blue-300" />
+                <span className="text-gray-300">+66 2 123 4567</span>
               </li>
               <li className="flex items-center">
-                <Mail size={18} className="mr-2 flex-shrink-0" />
-                <span>info@coldchain.example</span>
+                <Mail size={18} className="mr-2 flex-shrink-0 text-blue-300" />
+                <span className="text-gray-300">info@coldchain.example</span>
               </li>
             </ul>
           </div>
         </div>
-        
+
         {/* Copyright */}
-        <div className="border-t border-gray-800 mt-12 pt-8 text-center">
+        <div className="border-t border-gray-800 dark:border-gray-700 mt-12 pt-8 text-center">
           <p>{t.copyright}</p>
         </div>
       </div>

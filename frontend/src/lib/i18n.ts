@@ -1,33 +1,72 @@
-import {Pathnames} from 'next-intl/navigation';
-
-export const useTranslations = (namespace?: string) => {
-  return (key: string) => {
-    // แสดงค่า key ที่ส่งเข้ามาเลย
-    return key.split('.').pop() || key;
-  };
-};
-
-// จำลองข้อมูลการตั้งค่าภาษา
+// src/lib/i18n.ts
 export const locales = ['en', 'th'] as const;
+export type Locale = typeof locales[number];
 
-export const pathnames = {
-  '/': '/',
-  '/services': '/services',
-  '/contact': '/contact'
+const translations = {
+  en: {
+    navigation: {
+      services: "Services",
+      tracking: "Tracking",
+      contact: "Contact",
+      login: "Login"
+    },
+    hero: {
+      title: "Temperature-Controlled Logistics Excellence",
+      subtitle: "Advanced Cold Chain Solutions with Real-Time Monitoring",
+      getStarted: "Get Started",
+      learnMore: "Learn More"
+    },
+    // Add more translations as needed
+  },
+  th: {
+    navigation: {
+      services: "บริการ",
+      tracking: "ติดตามสินค้า",
+      contact: "ติดต่อเรา",
+      login: "เข้าสู่ระบบ"
+    },
+    hero: {
+      title: "ความเป็นเลิศด้านโลจิสติกส์ควบคุมอุณหภูมิ",
+      subtitle: "โซลูชันโซ่ความเย็นขั้นสูงพร้อมการติดตามแบบเรียลไทม์",
+      getStarted: "เริ่มต้นใช้งาน",
+      learnMore: "เรียนรู้เพิ่มเติม"
+    },
+    // Add more translations as needed
+  }
 };
 
-export const localePrefix = 'always';
+// ฟังก์ชันสำหรับดึงคำแปลตามภาษาและ key
+export function getTranslation(locale: Locale, key: string) {
+  try {
+    const parts = key.split('.');
+    let result = translations[locale];
+    
+    for (const part of parts) {
+      if (!result[part]) return key;
+      result = result[part];
+    }
+    
+    return result || key;
+  } catch (e) {
+    return key;
+  }
+}
 
-export type Locale = (typeof locales)[number];
+// ฟังก์ชันจำลอง useTranslations
+export function useTranslations(namespace?: string) {
+  const locale = typeof window !== 'undefined' ? 
+    (localStorage.getItem('language') as Locale || 'en') : 'en';
+  
+  return (key: string) => {
+    if (namespace) {
+      return getTranslation(locale, `${namespace}.${key}`);
+    }
+    return getTranslation(locale, key);
+  };
+}
 
 // ฟังก์ชันจำลองอื่นๆ ที่อาจต้องใช้
-export const useLocale = () => 'en';
-export const useTranslation = () => {
-  return {
-    t: (key: string) => key.split('.').pop() || key,
-    i18n: {
-      changeLanguage: (lang: string) => {},
-      language: 'en'
-    }
-  };
+export const useLocale = () => {
+  return typeof window !== 'undefined' ? 
+    (localStorage.getItem('language') as Locale || 'en') : 'en';
 };

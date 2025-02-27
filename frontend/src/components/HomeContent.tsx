@@ -1,14 +1,15 @@
-// src/components/HomeContent.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ThermometerSnowflake, MapPin, Shield } from 'lucide-react';
+import { useTheme } from '@/components/ThemeProvider';
 
 export function HomeContent() {
+  const { theme } = useTheme();
   const [language, setLanguage] = useState('en');
   
-  // Load language preference from localStorage on component mount
+  // Load language preference from localStorage
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const storedLanguage = localStorage.getItem('language') || 'en';
@@ -25,13 +26,9 @@ export function HomeContent() {
       }
     };
     
-    window.addEventListener('storage', handleStorageChange);
-    
-    // Custom event listener for language changes within the app
     window.addEventListener('languageChange', handleStorageChange);
     
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('languageChange', handleStorageChange);
     };
   }, []);
@@ -96,26 +93,26 @@ export function HomeContent() {
     }
   };
 
-  // Get translations for current language
+  // Get translations
   const t = translations[language];
 
   return (
     <div className="flex flex-col min-h-screen">
       <main className="flex-grow">
         {/* Hero Section */}
-        <section className="bg-gray-900 text-white py-24">
+        <section className="hero py-24">
           <div className="container mx-auto px-4 text-center">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
               {t.hero.title}
             </h1>
-            <p className="text-xl mb-8 text-gray-300">
+            <p className="text-xl mb-8">
               {t.hero.subtitle}
             </p>
             <div className="flex flex-wrap justify-center gap-4">
-              <Link href="/contact" className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md transition duration-300">
+              <Link href="/contact" className="btn-primary px-6 py-3 rounded-md">
                 {t.hero.getStarted}
               </Link>
-              <Link href="/services" className="px-6 py-3 border border-white hover:bg-white/10 text-white font-medium rounded-md transition duration-300">
+              <Link href="/services" className="btn-secondary px-6 py-3 rounded-md">
                 {t.hero.learnMore}
               </Link>
             </div>
@@ -123,48 +120,48 @@ export function HomeContent() {
         </section>
 
         {/* Services Section */}
-        <section className="py-16 bg-white dark:bg-gray-800">
+        <section className="services-section">
           <div className="container mx-auto px-4">
-            <h2 className="text-3xl font-bold text-center mb-12 text-gray-900 dark:text-white">
+            <h2 className="section-heading">
               {t.services.title}
             </h2>
             
             <div className="grid md:grid-cols-3 gap-8">
               {/* Temperature Control */}
-              <div className="bg-white dark:bg-gray-700 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-600">
+              <div className="feature-card">
                 <div className="text-blue-600 dark:text-blue-400 mb-4">
                   <ThermometerSnowflake size={40} />
                 </div>
-                <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">
+                <h3 className="text-xl font-semibold mb-2">
                   {t.services.temperatureControl.title}
                 </h3>
-                <p className="text-gray-600 dark:text-gray-300">
+                <p>
                   {t.services.temperatureControl.description}
                 </p>
               </div>
               
               {/* Real-Time Tracking */}
-              <div className="bg-white dark:bg-gray-700 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-600">
+              <div className="feature-card">
                 <div className="text-blue-600 dark:text-blue-400 mb-4">
                   <MapPin size={40} />
                 </div>
-                <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">
+                <h3 className="text-xl font-semibold mb-2">
                   {t.services.realTimeTracking.title}
                 </h3>
-                <p className="text-gray-600 dark:text-gray-300">
+                <p>
                   {t.services.realTimeTracking.description}
                 </p>
               </div>
               
               {/* Quality Assured */}
-              <div className="bg-white dark:bg-gray-700 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-600">
+              <div className="feature-card">
                 <div className="text-blue-600 dark:text-blue-400 mb-4">
                   <Shield size={40} />
                 </div>
-                <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">
+                <h3 className="text-xl font-semibold mb-2">
                   {t.services.qualityAssured.title}
                 </h3>
-                <p className="text-gray-600 dark:text-gray-300">
+                <p>
                   {t.services.qualityAssured.description}
                 </p>
               </div>
@@ -173,7 +170,7 @@ export function HomeContent() {
         </section>
         
         {/* CTA Section */}
-        <section className="py-16 bg-blue-600 text-white">
+        <section className="cta-section py-16">
           <div className="container mx-auto px-4 text-center">
             <h2 className="text-3xl font-bold mb-4">
               {t.cta.title}
