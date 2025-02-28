@@ -1,42 +1,44 @@
-// src/lib/i18n.ts
+// Optimized i18n.ts
 export const locales = ['en', 'th'] as const;
 export type Locale = typeof locales[number];
 
+// ข้อความแปลพื้นฐาน
 const translations = {
   en: {
-    navigation: {
+    common: {
+      loading: "Loading...",
+      error: "An error occurred",
+      success: "Success!"
+    },
+    nav: {
+      home: "Home",
+      dashboard: "Dashboard",
+      tracking: "Track",
       services: "Services",
-      tracking: "Tracking",
       contact: "Contact",
-      login: "Login"
-    },
-    hero: {
-      title: "Temperature-Controlled Logistics Excellence",
-      subtitle: "Advanced Cold Chain Solutions with Real-Time Monitoring",
-      getStarted: "Get Started",
-      learnMore: "Learn More"
-    },
-    // Add more translations as needed
+      login: "Login",
+      logout: "Logout"
+    }
   },
   th: {
-    navigation: {
+    common: {
+      loading: "กำลังโหลด...",
+      error: "เกิดข้อผิดพลาด",
+      success: "สำเร็จ!"
+    },
+    nav: {
+      home: "หน้าแรก",
+      dashboard: "แดชบอร์ด",
+      tracking: "ติดตาม",
       services: "บริการ",
-      tracking: "ติดตามสินค้า",
-      contact: "ติดต่อเรา",
-      login: "เข้าสู่ระบบ"
-    },
-    hero: {
-      title: "ความเป็นเลิศด้านโลจิสติกส์ควบคุมอุณหภูมิ",
-      subtitle: "โซลูชันโซ่ความเย็นขั้นสูงพร้อมการติดตามแบบเรียลไทม์",
-      getStarted: "เริ่มต้นใช้งาน",
-      learnMore: "เรียนรู้เพิ่มเติม"
-    },
-    // Add more translations as needed
+      contact: "ติดต่อ",
+      login: "เข้าสู่ระบบ",
+      logout: "ออกจากระบบ"
+    }
   }
 };
 
-// ฟังก์ชันสำหรับดึงคำแปลตามภาษาและ key
-export function getTranslation(locale: Locale, key: string) {
+export function t(key: string, locale: Locale = 'en') {
   try {
     const parts = key.split('.');
     let result = translations[locale];
@@ -52,21 +54,13 @@ export function getTranslation(locale: Locale, key: string) {
   }
 }
 
-// ฟังก์ชันจำลอง useTranslations
-export function useTranslations(namespace?: string) {
-  const locale = typeof window !== 'undefined' ? 
-    (localStorage.getItem('language') as Locale || 'en') : 'en';
-  
-  return (key: string) => {
-    if (namespace) {
-      return getTranslation(locale, `${namespace}.${key}`);
-    }
-    return getTranslation(locale, key);
-  };
+export function getCurrentLocale(): Locale {
+  if (typeof window === 'undefined') return 'en';
+  return (localStorage.getItem('language') as Locale) || 'en';
 }
 
-// ฟังก์ชันจำลองอื่นๆ ที่อาจต้องใช้
-export const useLocale = () => {
-  return typeof window !== 'undefined' ? 
-    (localStorage.getItem('language') as Locale || 'en') : 'en';
-};
+export function setLocale(locale: Locale): void {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem('language', locale);
+  window.dispatchEvent(new Event('languageChange'));
+}

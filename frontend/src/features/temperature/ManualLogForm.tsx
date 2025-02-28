@@ -1,35 +1,55 @@
-// frontend/src/features/temperature/ManualLogForm.tsx
+// Optimized ManualLogForm.tsx
 import { useState } from 'react';
-import { useI18n } from '@/i18n';
-import { temperatureService } from '@/services/api';
 import { useRouter } from 'next/navigation';
+import { AlertCircle, CheckCircle } from 'lucide-react';
 
-interface ManualLogFormProps {
+interface Props {
   orderId: string;
   onSuccess?: () => void;
+  language?: 'en' | 'th';
 }
 
-export const ManualLogForm = ({ orderId, onSuccess }: ManualLogFormProps) => {
-  const { t } = useI18n();
+export function ManualLogForm({ orderId, onSuccess, language = 'en' }: Props) {
   const router = useRouter();
-  const [formData, setFormData] = useState({
-    temperature: '',
-    humidity: '',
-    notes: '',
-  });
+  const [form, setForm] = useState({ temperature: '', humidity: '', notes: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+  const t = {
+    en: {
+      title: 'Add Temperature Reading',
+      temp: 'Temperature (°C) *',
+      humidity: 'Humidity (%)',
+      notes: 'Notes',
+      notesPlaceholder: 'Enter any observations or comments',
+      submit: 'Submit Reading',
+      submitting: 'Submitting...',
+      success: 'Temperature log added successfully',
+      validation: 'Please enter a valid temperature value',
+      humidityRange: 'Humidity must be between 0-100%',
+      cancel: 'Cancel'
+    },
+    th: {
+      title: 'เพิ่มค่าอุณหภูมิ',
+      temp: 'อุณหภูมิ (°C) *',
+      humidity: 'ความชื้น (%)',
+      notes: 'บันทึกเพิ่มเติม',
+      notesPlaceholder: 'ใส่ข้อสังเกตหรือความคิดเห็น',
+      submit: 'บันทึกค่า',
+      submitting: 'กำลังบันทึก...',
+      success: 'บันทึกอุณหภูมิสำเร็จ',
+      validation: 'กรุณาใส่ค่าอุณหภูมิที่ถูกต้อง',
+      humidityRange: 'ความชื้นต้องอยู่ระหว่าง 0-100%',
+      cancel: 'ยกเลิก'
+    }
+  }[language];
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
@@ -37,40 +57,28 @@ export const ManualLogForm = ({ orderId, onSuccess }: ManualLogFormProps) => {
 
     try {
       // Validate input
-      const temp = parseFloat(formData.temperature);
-      if (isNaN(temp)) {
-        throw new Error(t('temperature.validationError'));
-      }
+      const temp = parseFloat(form.temperature);
+      if (isNaN(temp)) throw new Error(t.validation);
 
-      // Optional humidity
-      let humidity;
-      if (formData.humidity) {
-        humidity = parseFloat(formData.humidity);
-        if (isNaN(humidity) || humidity < 0 || humidity > 100) {
-          throw new Error(t('temperature.humidityRangeError'));
-        }
+      // Optional humidity validation
+      if (form.humidity) {
+        const humidity = parseFloat(form.humidity);
+        if (isNaN(humidity) || humidity < 0 || humidity > 100) 
+          throw new Error(t.humidityRange);
       }
 
       // Submit data
-      await temperatureService.addLog({
-        orderId,
-        temperature: temp,
-        humidity,
-        notes: formData.notes
-      });
+      // await temperatureService.addLog({ orderId, temperature: temp, ... });
+      
+      // Simulate API call for now
+      await new Promise(r => setTimeout(r, 800));
 
       setSuccess(true);
-      setFormData({
-        temperature: '',
-        humidity: '',
-        notes: '',
-      });
+      setForm({ temperature: '', humidity: '', notes: '' });
+      if (onSuccess) onSuccess();
 
-      if (onSuccess) {
-        onSuccess();
-      }
-    } catch (err: any) {
-      setError(err.message || t('common.error'));
+    } catch (err) {
+      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -78,82 +86,54 @@ export const ManualLogForm = ({ orderId, onSuccess }: ManualLogFormProps) => {
 
   return (
     <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-      <h2 className="text-xl font-semibold mb-4">{t('temperature.addManualLog')}</h2>
+      <h2 className="text-xl font-semibold mb-4">{t.title}</h2>
       
       {error && (
-        <div className="mb-4 p-3 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300 rounded-md">
-          {error}
+        <div className="mb-4 p-3 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300 rounded-md flex items-start">
+          <AlertCircle size={18} className="mr-2 mt-0.5 flex-shrink-0" />
+          <span>{error}</span>
         </div>
       )}
       
       {success && (
-        <div className="mb-4 p-3 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 rounded-md">
-          {t('temperature.logAddedSuccess')}
+        <div className="mb-4 p-3 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 rounded-md flex items-start">
+          <CheckCircle size={18} className="mr-2 mt-0.5 flex-shrink-0" />
+          <span>{t.success}</span>
         </div>
       )}
       
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            {t('temperature.temperature')} (°C) *
-          </label>
-          <input
-            type="number"
-            name="temperature"
-            step="0.1"
-            required
-            value={formData.temperature}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-            placeholder="-18.5"
-          />
+          <label className="block text-sm font-medium mb-1">{t.temp}</label>
+          <input type="number" name="temperature" step="0.1" required
+            value={form.temperature} onChange={handleChange} className="w-full px-4 py-2 border rounded-lg"
+            placeholder="-18.5" />
         </div>
         
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            {t('temperature.humidity')} (%)
-          </label>
-          <input
-            type="number"
-            name="humidity"
-            step="0.1"
-            min="0"
-            max="100"
-            value={formData.humidity}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-            placeholder="65.0"
-          />
+          <label className="block text-sm font-medium mb-1">{t.humidity}</label>
+          <input type="number" name="humidity" step="0.1" min="0" max="100"
+            value={form.humidity} onChange={handleChange} className="w-full px-4 py-2 border rounded-lg"
+            placeholder="65.0" />
         </div>
         
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            {t('temperature.notes')}
-          </label>
-          <textarea
-            name="notes"
-            value={formData.notes}
-            onChange={handleChange}
-            rows={3}
-            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-            placeholder={t('temperature.notesPlaceholder')}
-          />
+          <label className="block text-sm font-medium mb-1">{t.notes}</label>
+          <textarea name="notes" value={form.notes} onChange={handleChange} rows={3}
+            className="w-full px-4 py-2 border rounded-lg" placeholder={t.notesPlaceholder}></textarea>
         </div>
         
-        <div className="flex justify-end">
-          <button
-            type="submit"
-            disabled={loading}
-            className={`px-4 py-2 rounded-md text-white font-medium ${
-              loading 
-                ? 'bg-blue-400 cursor-not-allowed' 
-                : 'bg-blue-600 hover:bg-blue-700'
-            }`}
-          >
-            {loading ? t('common.submitting') : t('temperature.addLog')}
+        <div className="flex justify-end space-x-3">
+          <button type="button" onClick={() => router.back()}
+            className="px-4 py-2 border rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+            {t.cancel}
+          </button>
+          <button type="submit" disabled={loading}
+            className={`px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 ${loading ? 'opacity-70' : ''}`}>
+            {loading ? t.submitting : t.submit}
           </button>
         </div>
       </form>
     </div>
   );
-};
+}

@@ -3,73 +3,68 @@
 import {useState} from 'react';
 import {useRouter} from 'next/navigation';
 import Link from 'next/link';
-import {Mail, Lock, AlertCircle} from 'lucide-react';
+import {User, Mail, Lock, Phone, Building, AlertCircle, CheckCircle} from 'lucide-react';
 import {useLanguage} from '@/providers/LanguageProvider';
 import {authService} from '@/services/api';
 
-interface LoginFormProps {
-  onSuccess?: () => void;
-}
-
-export function LoginForm({onSuccess}: LoginFormProps) {
+export function RegisterForm() {
   const router = useRouter();
   const {language} = useLanguage();
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [formData, setFormData] = useState({email: '', password: '', rememberMe: false});
+  const [success, setSuccess] = useState('');
+  const [form, setForm] = useState({
+    name: '', email: '', password: '', confirmPassword: '', 
+    phone: '', company: '', acceptTerms: false
+  });
 
   const t = {
     en: {
-      email: 'Email', password: 'Password', rememberMe: 'Remember me',
-      login: 'Sign in', forgotPassword: 'Forgot password?',
-      noAccount: "Don't have an account?", register: 'Register',
-      invalidCredentials: 'Invalid email or password',
-      emailRequired: 'Email is required', passwordRequired: 'Password is required',
+      name: 'Full Name', email: 'Email', phone: 'Phone Number', company: 'Company/Organization (Optional)',
+      password: 'Password', confirmPassword: 'Confirm Password', acceptTerms: 'I accept the terms and conditions',
+      register: 'Register', haveAccount: 'Already have an account?', login: 'Sign in',
+      success: 'Registration successful! Please sign in.'
     },
     th: {
-      email: 'อีเมล', password: 'รหัสผ่าน', rememberMe: 'จดจำฉัน',
-      login: 'เข้าสู่ระบบ', forgotPassword: 'ลืมรหัสผ่าน?',
-      noAccount: 'ยังไม่มีบัญชี?', register: 'ลงทะเบียน',
-      invalidCredentials: 'อีเมลหรือรหัสผ่านไม่ถูกต้อง',
-      emailRequired: 'กรุณากรอกอีเมล', passwordRequired: 'กรุณากรอกรหัสผ่าน',
+      name: 'ชื่อ-นามสกุล', email: 'อีเมล', phone: 'เบอร์โทรศัพท์', company: 'บริษัท/องค์กร (ไม่จำเป็น)',
+      password: 'รหัสผ่าน', confirmPassword: 'ยืนยันรหัสผ่าน', acceptTerms: 'ฉันยอมรับข้อกำหนดและเงื่อนไข',
+      register: 'ลงทะเบียน', haveAccount: 'มีบัญชีอยู่แล้ว?', login: 'เข้าสู่ระบบ',
+      success: 'ลงทะเบียนสำเร็จ! กรุณาเข้าสู่ระบบ'
     }
   }[language];
 
-  const handleChange = (e) => {
+  const handleChange = e => {
     const {name, value, type, checked} = e.target;
-    setFormData({...formData, [name]: type === 'checkbox' ? checked : value});
+    setForm({...form, [name]: type === 'checkbox' ? checked : value});
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault();
     setError('');
-    
-    if (!formData.email) return setError(t.emailRequired);
-    if (!formData.password) return setError(t.passwordRequired);
-    
-    setIsLoading(true);
+    setSuccess('');
     
     try {
-      const response = await authService.login(formData.email, formData.password);
+      setLoading(true);
+      await authService.register({
+        username: form.email.split('@')[0],
+        email: form.email,
+        password: form.password,
+        full_name: form.name,
+        phone_number: form.phone,
+        company: form.company
+      });
       
-      if (formData.rememberMe) {
-        document.cookie = `rememberUser=true; max-age=${60*60*24*30}`;
-      }
+      setSuccess(t.success);
+      setForm({
+        name: '', email: '', password: '', confirmPassword: '',
+        phone: '', company: '', acceptTerms: false
+      });
       
-      if (onSuccess) {
-        onSuccess();
-      } else {
-        router.push(response.user.role === 'admin' 
-          ? '/admin/dashboard' 
-          : response.user.role === 'staff' 
-            ? '/staff/dashboard' 
-            : '/dashboard');
-      }
+      setTimeout(() => router.push('/auth/login'), 2000);
     } catch (err) {
-      console.error('Error:', err);
-      setError(t.invalidCredentials);
+      setError(err.message || 'Registration failed');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
@@ -77,11 +72,27 @@ export function LoginForm({onSuccess}: LoginFormProps) {
     <div className="w-full max-w-md mx-auto">
       <form onSubmit={handleSubmit} className="space-y-6">
         {error && (
-          <div className="p-3 rounded-md bg-red-50 text-red-500 dark:bg-red-900/30 dark:text-red-200 flex">
-            <AlertCircle className="h-5 w-5 mr-2 flex-shrink-0" />
-            <span>{error}</span>
+          <div className="p-3 rounded-md bg-red-50 text-red-500 dark:bg-red-900/30 flex">
+            <AlertCircle className="h-5 w-5 mr-2 flex-shrink-0" /><span>{error}</span>
           </div>
         )}
+        
+        {success && (
+          <div className="p-3 rounded-md bg-green-50 text-green-500 dark:bg-green-900/30 flex">
+            <CheckCircle className="h-5 w-5 mr-2 flex-shrink-0" /><span>{success}</span>
+          </div>
+        )}
+        
+        <div>
+          <label htmlFor="name" className="block text-sm font-medium mb-1">{t.name}</label>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <User className="h-5 w-5 text-gray-400" />
+            </div>
+            <input id="name" name="name" type="text" required value={form.name} onChange={handleChange}
+              className="block w-full pl-10 pr-3 py-2 rounded-md border" />
+          </div>
+        </div>
         
         <div>
           <label htmlFor="email" className="block text-sm font-medium mb-1">{t.email}</label>
@@ -89,65 +100,78 @@ export function LoginForm({onSuccess}: LoginFormProps) {
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <Mail className="h-5 w-5 text-gray-400" />
             </div>
-            <input
-              id="email" name="email" type="email" autoComplete="email" required
-              value={formData.email} onChange={handleChange}
-              className="block w-full pl-10 pr-3 py-2 rounded-md border"
-              placeholder="you@example.com"
-            />
+            <input id="email" name="email" type="email" required value={form.email} onChange={handleChange}
+              className="block w-full pl-10 pr-3 py-2 rounded-md border" />
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium mb-1">{t.password}</label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Lock className="h-5 w-5 text-gray-400" />
+              </div>
+              <input id="password" name="password" type="password" required value={form.password} onChange={handleChange}
+                className="block w-full pl-10 pr-3 py-2 rounded-md border" />
+            </div>
+          </div>
+          
+          <div>
+            <label htmlFor="confirmPassword" className="block text-sm font-medium mb-1">{t.confirmPassword}</label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Lock className="h-5 w-5 text-gray-400" />
+              </div>
+              <input id="confirmPassword" name="confirmPassword" type="password" required value={form.confirmPassword} 
+                onChange={handleChange} className="block w-full pl-10 pr-3 py-2 rounded-md border" />
+            </div>
           </div>
         </div>
         
         <div>
-          <label htmlFor="password" className="block text-sm font-medium mb-1">{t.password}</label>
+          <label htmlFor="phone" className="block text-sm font-medium mb-1">{t.phone}</label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Lock className="h-5 w-5 text-gray-400" />
+              <Phone className="h-5 w-5 text-gray-400" />
             </div>
-            <input
-              id="password" name="password" type="password" autoComplete="current-password" required
-              value={formData.password} onChange={handleChange}
-              className="block w-full pl-10 pr-3 py-2 rounded-md border"
-              placeholder="••••••••"
-            />
+            <input id="phone" name="phone" type="tel" required value={form.phone} onChange={handleChange}
+              className="block w-full pl-10 pr-3 py-2 rounded-md border" />
           </div>
         </div>
         
-        <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <input
-              id="rememberMe" name="rememberMe" type="checkbox"
-              checked={formData.rememberMe} onChange={handleChange}
-              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-            />
-            <label htmlFor="rememberMe" className="ml-2 block text-sm">{t.rememberMe}</label>
+        <div>
+          <label htmlFor="company" className="block text-sm font-medium mb-1">{t.company}</label>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Building className="h-5 w-5 text-gray-400" />
+            </div>
+            <input id="company" name="company" type="text" value={form.company} onChange={handleChange}
+              className="block w-full pl-10 pr-3 py-2 rounded-md border" />
           </div>
-          
-          <Link href="/auth/forgot-password" className="text-sm text-blue-600 dark:text-blue-400 hover:underline">
-            {t.forgotPassword}
-          </Link>
         </div>
         
-        <button
-          type="submit" disabled={isLoading}
-          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
-        >
-          {isLoading ? (
-            <>
-              <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              {`${t.login}...`}
-            </>
-          ) : t.login}
+        <div className="flex items-center">
+          <input id="acceptTerms" name="acceptTerms" type="checkbox" required checked={form.acceptTerms} 
+            onChange={handleChange} className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" />
+          <label htmlFor="acceptTerms" className="ml-2 block text-sm">{t.acceptTerms}</label>
+        </div>
+        
+        <button type="submit" disabled={loading} className="w-full py-2 px-4 border-transparent rounded-md 
+          text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50">
+          {loading ? (
+            <svg className="animate-spin h-5 w-5 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          ) : t.register}
         </button>
         
-        <div className="text-center mt-4">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            {t.noAccount}{' '}
-            <Link href="/auth/register" className="font-medium text-blue-600 dark:text-blue-400 hover:underline">
-              {t.register}
+        <div className="text-center">
+          <p className="text-sm">
+            {t.haveAccount}{' '}
+            <Link href="/auth/login" className="font-medium text-blue-600 hover:underline">
+              {t.login}
             </Link>
           </p>
         </div>
