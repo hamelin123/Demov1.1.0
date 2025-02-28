@@ -1,9 +1,10 @@
+// src/routes/index.ts
 import express from 'express';
 import authRoutes from './authRoutes';
 import userRoutes from './userRoutes';
 import orderRoutes from './orderRoutes';
 import trackingRoutes from './trackingRoutes';
-import temperatureRoutes from './temperatureRoutes';
+// import temperatureRoutes from './temperatureRoutes'; // Comment หรือลบบรรทัดนี้
 
 const router = express.Router();
 
@@ -17,6 +18,6 @@ router.use('/auth', authRoutes);
 router.use('/users', userRoutes);
 router.use('/orders', orderRoutes);
 router.use('/tracking', trackingRoutes);
-router.use('/temperature', temperatureRoutes);
+// router.use('/temperature', temperatureRoutes); // Comment หรือลบบรรทัดนี้ด้วย
 
 export default router;

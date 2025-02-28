@@ -1,3 +1,4 @@
+// backend/src/utils/validators.ts
 import Joi from 'joi';
 
 /**
@@ -99,31 +100,6 @@ export const validateProfileUpdateInput = (data: any) => {
 };
 
 /**
- * ตรวจสอบข้อมูลการเปลี่ยนรหัสผ่าน
- */
-export const validateChangePasswordInput = (data: any) => {
-  const schema = Joi.object({
-    currentPassword: Joi.string().required()
-      .messages({
-        'string.base': 'Current password should be a string',
-        'string.empty': 'Current password is required',
-        'any.required': 'Current password is required'
-      }),
-    newPassword: Joi.string().min(8).required()
-      .pattern(new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])'))
-      .messages({
-        'string.base': 'New password should be a string',
-        'string.empty': 'New password is required',
-        'string.min': 'New password should have a minimum length of {#limit}',
-        'string.pattern.base': 'New password must contain at least one uppercase letter, one lowercase letter, and one number',
-        'any.required': 'New password is required'
-      })
-  });
-
-  return schema.validate(data);
-};
-
-/**
  * ตรวจสอบข้อมูลการสร้างคำสั่งซื้อ
  */
 export const validateOrderInput = (data: any) => {
@@ -203,11 +179,10 @@ export const validateOrderInput = (data: any) => {
  */
 export const validateTrackingEventInput = (data: any) => {
   const schema = Joi.object({
-    orderId: Joi.string().uuid().required()
+    orderId: Joi.string().required()
       .messages({
         'string.base': 'Order ID should be a string',
         'string.empty': 'Order ID is required',
-        'string.uuid': 'Order ID must be a valid UUID',
         'any.required': 'Order ID is required'
       }),
     status: Joi.string().required()
@@ -224,9 +199,9 @@ export const validateTrackingEventInput = (data: any) => {
       .messages({
         'string.max': 'Notes should have a maximum length of {#limit}'
       }),
-    vehicleId: Joi.string().uuid().optional()
+    vehicleId: Joi.string().optional()
       .messages({
-        'string.uuid': 'Vehicle ID must be a valid UUID'
+        'string.base': 'Vehicle ID must be a string'
       })
   });
 
@@ -238,11 +213,10 @@ export const validateTrackingEventInput = (data: any) => {
  */
 export const validateTemperatureLogInput = (data: any) => {
   const schema = Joi.object({
-    orderId: Joi.string().uuid().required()
+    orderId: Joi.string().required()
       .messages({
         'string.base': 'Order ID should be a string',
         'string.empty': 'Order ID is required',
-        'string.uuid': 'Order ID must be a valid UUID',
         'any.required': 'Order ID is required'
       }),
     temperature: Joi.number().required()
@@ -261,10 +235,7 @@ export const validateTemperatureLogInput = (data: any) => {
   return schema.validate(data);
 };
 
-
-/**
- * ตรวจสอบข้อมูลผู้ใช้
- */
+// ตรวจสอบข้อมูลผู้ใช้
 export const validateUserInput = (data: any, isUpdate = false) => {
   const schema = Joi.object({
     username: isUpdate ? Joi.string().min(3).max(30).optional() : Joi.string().min(3).max(30).required()
@@ -324,9 +295,7 @@ export const validateUserInput = (data: any, isUpdate = false) => {
   return schema.validate(data);
 };
 
-/**
- * Schema สำหรับการอัปเดตสถานะผู้ใช้
- */
+// Schema สำหรับการอัปเดตสถานะผู้ใช้
 export const updateUserStatusSchema = Joi.object({
   status: Joi.string().valid('active', 'inactive').required()
     .messages({
@@ -335,6 +304,32 @@ export const updateUserStatusSchema = Joi.object({
       'any.required': 'Status is required'
     })
 });
+
+/**
+ * Middleware สำหรับตรวจสอบความถูกต้องของข้อมูลใน request body
+ * @param schema Joi schema สำหรับตรวจสอบข้อมูล
+ */
+export const validateBody = (schema: Joi.ObjectSchema) => {
+  return (req, res, next) => {
+    const { error, value } = schema.validate(req.body, { abortEarly: false });
+    
+    if (error) {
+      const errorMessage = error.details.map((detail) => detail.message).join(', ');
+      
+      return res.status(400).json({
+        message: 'Validation error',
+        errors: error.details.map(detail => ({
+          field: detail.context?.key,
+          message: detail.message
+        }))
+      });
+    }
+    
+    // อัปเดต req.body ด้วยข้อมูลที่ผ่านการตรวจสอบแล้ว
+    req.body = value;
+    next();
+  };
+};
 
 /**
  * Export schemas สำหรับใช้ใน middleware

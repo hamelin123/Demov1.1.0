@@ -1,187 +1,65 @@
+// backend/src/controllers/temperatureController.ts
 import { Request, Response } from 'express';
-import { TemperatureLogModel } from '../models/TemperatureLog';
-import { OrderModel } from '../models/Order';
-import { validateTemperatureLogInput } from '../utils/validators';
+import { getRepository } from 'typeorm';
+import { TemperatureLog } from '../entities/TemperatureLog';
+import { Order } from '../entities/Order';
 
-/**
- * ดึงบันทึกอุณหภูมิตาม order ID
- */
-export const getTemperatureByOrderId = async (req: Request, res: Response) => {
-  try {
-    const { orderId } = req.params;
-    
-    // ตรวจสอบว่าคำสั่งซื้อมีอยู่จริง
-    const order = await OrderModel.findById(orderId);
-    if (!order) {
-      res.status(404).json({ message: 'Order not found' });
-      return;
-    }
-
-    // ตรวจสอบสิทธิ์การเข้าถึง
-    if (req.user && order.user_id !== req.user.id && req.user.role !== 'admin') {
-      res.status(403).json({ message: 'Not authorized to access this temperature data' });
-      return;
-    }
-
-    const temperatureLogs = await TemperatureLogModel.findByOrderId(orderId);
-    
-    // จัดรูปแบบข้อมูลให้ใช้งานได้ง่ายใน frontend
-    const formattedData = temperatureLogs.map(log => ({
-      id: log.id,
-      temperature: log.temperature,
-      humidity: log.humidity,
-      timestamp: log.timestamp,
-      isAlert: log.is_alert
-    }));
-    
-    res.json({ 
-      orderId,
-      orderNumber: order.order_number,
-      temperatureLogs: formattedData 
-    });
-  } catch (error) {
-    console.error('Get temperature logs error:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-};
-
-/**
- * ดึงสถิติอุณหภูมิตาม order ID
- */
-export const getTemperatureStats = async (req: Request, res: Response) => {
-  try {
-    const { orderId } = req.params;
-    
-    // ตรวจสอบว่าคำสั่งซื้อมีอยู่จริง
-    const order = await OrderModel.findById(orderId);
-    if (!order) {
-      res.status(404).json({ message: 'Order not found' });
-      return;
-    }
-
-    // ตรวจสอบสิทธิ์การเข้าถึง
-    if (req.user && order.user_id !== req.user.id && req.user.role !== 'admin') {
-      res.status(403).json({ message: 'Not authorized to access this temperature data' });
-      return;
-    }
-
-    const stats = await TemperatureLogModel.getTemperatureStats(orderId);
-    const latestLog = await TemperatureLogModel.findLatestByOrderId(orderId);
-    
-    res.json({ 
-      orderId,
-      orderNumber: order.order_number,
-      stats,
-      currentTemperature: latestLog ? latestLog.temperature : null,
-      currentHumidity: latestLog ? latestLog.humidity : null,
-      lastUpdate: latestLog ? latestLog.timestamp : null
-    });
-  } catch (error) {
-    console.error('Get temperature stats error:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-};
-
-/**
- * เพิ่มบันทึกอุณหภูมิใหม่
- */
 export const addTemperatureLog = async (req: Request, res: Response) => {
   try {
-    // ตรวจสอบความถูกต้องของข้อมูล
-    const { error, value } = validateTemperatureLogInput(req.body);
-    if (error) {
-      res.status(400).json({ message: error.details[0].message });
-      return;
-    }
-
-    const { orderId, temperature, humidity } = value;
+    const { orderId, temperature, humidity, notes } = req.body;
     
-    // ตรวจสอบว่าคำสั่งซื้อมีอยู่จริง
-    const order = await OrderModel.findById(orderId);
+    // Validate input
+    if (!orderId || temperature === undefined) {
+      return res.status(400).json({ message: 'OrderId and temperature are required' });
+    }
+    
+    // Check if order exists
+    const orderRepository = getRepository(Order);
+    const order = await orderRepository.findOne({ where: { id: orderId } });
+    
     if (!order) {
-      res.status(404).json({ message: 'Order not found' });
-      return;
-    }
-
-    // ตรวจสอบว่าอุณหภูมิอยู่ในช่วงปกติหรือไม่ (ตัวอย่าง: 2-8°C สำหรับสินค้าที่ต้องควบคุมอุณหภูมิ)
-    // ข้อกำหนดอุณหภูมิอาจแตกต่างกันตามประเภทของสินค้า
-    const minTemp = 2;
-    const maxTemp = 8;
-    const isAlert = temperature < minTemp || temperature > maxTemp;
-
-    // สร้างบันทึกอุณหภูมิใหม่
-    const temperatureLog = await TemperatureLogModel.create({
-      order_id: orderId,
-      temperature,
-      humidity,
-      is_alert: isAlert
-    });
-
-    // ถ้าอุณหภูมิไม่อยู่ในช่วงที่กำหนด ควรมีการแจ้งเตือน
-    // โค้ดส่วนนี้จะเรียกใช้บริการแจ้งเตือน (ซึ่งยังไม่ได้พัฒนา)
-    if (isAlert) {
-      // ตัวอย่าง: notificationService.sendAlert(...)
-      console.log(`Temperature alert for order ${orderId}: ${temperature}°C`);
+      return res.status(404).json({ message: 'Order not found' });
     }
     
-    res.status(201).json({ 
-      message: 'Temperature log added successfully', 
-      temperatureLog,
+    // Check for permission (only staff, admin or the order owner can add logs)
+    if (req.user.role !== 'admin' && req.user.role !== 'staff' && req.user.id !== order.user_id) {
+      return res.status(403).json({ message: 'Not authorized to add temperature logs for this order' });
+    }
+    
+    // Set temperature alert based on required range
+    // This could be product-specific in a more sophisticated implementation
+    const minTemp = -20; // Example minimum acceptable temperature
+    const maxTemp = -15; // Example maximum acceptable temperature
+    const isAlert = temperature < minTemp || temperature > maxTemp;
+    
+    // Create new temperature log
+    const temperatureLogRepository = getRepository(TemperatureLog);
+    const newLog = temperatureLogRepository.create({
+      order_id: orderId,
+      staff_id: req.user.role === 'staff' || req.user.role === 'admin' ? req.user.id : null,
+      temperature,
+      humidity: humidity || null,
+      is_alert: isAlert,
+      input_method: 'manual',
+      notes: notes || null
+    });
+    
+    await temperatureLogRepository.save(newLog);
+    
+    // If there's an alert, additional notification logic would go here
+    if (isAlert) {
+      // Send alert to relevant parties (email, push notification, etc.)
+      console.log(`Temperature alert for order ${orderId}: ${temperature}°C`);
+      // logAlertService.recordAlert(newLog.id, orderId, temperature, minTemp, maxTemp);
+    }
+    
+    return res.status(201).json({ 
+      message: 'Temperature log added successfully',
+      temperatureLog: newLog,
       isAlert
     });
   } catch (error) {
     console.error('Add temperature log error:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-};
-
-/**
- * ดึงการแจ้งเตือนอุณหภูมิทั้งหมด (สำหรับ admin)
- */
-export const getAlerts = async (req: Request, res: Response) => {
-  try {
-    const limit = parseInt(req.query.limit as string) || 10;
-    const page = parseInt(req.query.page as string) || 1;
-    const offset = (page - 1) * limit;
-    
-    const alerts = await TemperatureLogModel.findAlerts(limit, offset);
-    
-    res.json({ alerts });
-  } catch (error) {
-    console.error('Get temperature alerts error:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-};
-
-/**
- * ดึงการแจ้งเตือนอุณหภูมิตาม order ID
- */
-export const getAlertsByOrderId = async (req: Request, res: Response) => {
-  try {
-    const { orderId } = req.params;
-    
-    // ตรวจสอบว่าคำสั่งซื้อมีอยู่จริง
-    const order = await OrderModel.findById(orderId);
-    if (!order) {
-      res.status(404).json({ message: 'Order not found' });
-      return;
-    }
-
-    // ตรวจสอบสิทธิ์การเข้าถึง
-    if (req.user && order.user_id !== req.user.id && req.user.role !== 'admin') {
-      res.status(403).json({ message: 'Not authorized to access this temperature data' });
-      return;
-    }
-
-    const alerts = await TemperatureLogModel.findAlertsByOrderId(orderId);
-    
-    res.json({ 
-      orderId,
-      orderNumber: order.order_number,
-      alerts 
-    });
-  } catch (error) {
-    console.error('Get temperature alerts by order ID error:', error);
-    res.status(500).json({ message: 'Server error' });
+    return res.status(500).json({ message: 'Server error' });
   }
 };
