@@ -3,93 +3,58 @@ import { OrderModel } from '../models/Order';
 import { TrackingDataModel } from '../models/TrackingData';
 import { validateOrderInput } from '../utils/validators';
 
-/**
- * สร้างคำสั่งซื้อใหม่
- */
+// Create new order
 export const createOrder = async (req: Request, res: Response) => {
   try {
-    if (!req.user) {
-      res.status(401).json({ message: 'Authentication required' });
-      return;
-    }
+    if (!req.user) return res.status(401).json({ message: 'Authentication required' });
 
-    // ตรวจสอบความถูกต้องของข้อมูล
     const { error, value } = validateOrderInput(req.body);
-    if (error) {
-      res.status(400).json({ message: error.details[0].message });
-      return;
-    }
+    if (error) return res.status(400).json({ message: error.details[0].message });
 
-    const orderData = {
-      user_id: req.user.id,
-      ...value
-    };
+    // Create order
+    const newOrder = await OrderModel.create({ user_id: req.user.id, ...value });
 
-    // สร้างคำสั่งซื้อใหม่
-    const newOrder = await OrderModel.create(orderData);
-
-    // สร้างข้อมูลการติดตามเริ่มต้น
+    // Create initial tracking event
     await TrackingDataModel.create({
       order_id: newOrder.id,
       status: 'Order Created',
       notes: 'Order has been received and is being processed'
     });
 
-    res.status(201).json({ 
-      message: 'Order created successfully', 
-      order: newOrder 
-    });
+    res.status(201).json({ message: 'Order created successfully', order: newOrder });
   } catch (error) {
     console.error('Create order error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
 
-/**
- * ดึงคำสั่งซื้อตาม ID
- */
+// Get order by ID
 export const getOrderById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    
     const order = await OrderModel.findById(id);
     
-    if (!order) {
-      res.status(404).json({ message: 'Order not found' });
-      return;
-    }
+    if (!order) return res.status(404).json({ message: 'Order not found' });
 
-    // ตรวจสอบว่าเป็นเจ้าของคำสั่งซื้อหรือเป็น admin
+    // Check permission
     if (req.user && (order.user_id !== req.user.id && req.user.role !== 'admin')) {
-      res.status(403).json({ message: 'Not authorized to access this order' });
-      return;
+      return res.status(403).json({ message: 'Not authorized to access this order' });
     }
 
-    // ดึงข้อมูลการติดตามล่าสุด
+    // Get tracking data
     const trackingData = await TrackingDataModel.findByOrderId(id);
-
-    res.json({ 
-      order,
-      tracking: trackingData 
-    });
+    res.json({ order, tracking: trackingData });
   } catch (error) {
     console.error('Get order error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
 
-/**
- * ดึงคำสั่งซื้อทั้งหมดของผู้ใช้
- */
+// Get user orders
 export const getUserOrders = async (req: Request, res: Response) => {
   try {
-    if (!req.user) {
-      res.status(401).json({ message: 'Authentication required' });
-      return;
-    }
-
+    if (!req.user) return res.status(401).json({ message: 'Authentication required' });
     const orders = await OrderModel.findByUserId(req.user.id);
-    
     res.json({ orders });
   } catch (error) {
     console.error('Get user orders error:', error);
@@ -97,142 +62,87 @@ export const getUserOrders = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * อัปเดตคำสั่งซื้อ
- */
+// Update order
 export const updateOrder = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    
     const order = await OrderModel.findById(id);
     
-    if (!order) {
-      res.status(404).json({ message: 'Order not found' });
-      return;
-    }
+    if (!order) return res.status(404).json({ message: 'Order not found' });
 
-    // ตรวจสอบว่าเป็นเจ้าของคำสั่งซื้อหรือเป็น admin
+    // Check permission
     if (req.user && (order.user_id !== req.user.id && req.user.role !== 'admin')) {
-      res.status(403).json({ message: 'Not authorized to update this order' });
-      return;
+      return res.status(403).json({ message: 'Not authorized to update this order' });
     }
 
-    // ตรวจสอบว่าคำสั่งซื้อสามารถอัปเดตได้
+    // Check if order can be updated
     if (order.status !== 'pending' && req.user.role !== 'admin') {
-      res.status(400).json({ 
-        message: 'Can only update pending orders' 
-      });
-      return;
+      return res.status(400).json({ message: 'Can only update pending orders' });
     }
 
-    // ตรวจสอบความถูกต้องของข้อมูล
+    // Validate and update
     const { error, value } = validateOrderInput(req.body);
-    if (error) {
-      res.status(400).json({ message: error.details[0].message });
-      return;
-    }
+    if (error) return res.status(400).json({ message: error.details[0].message });
 
     const updatedOrder = await OrderModel.update(id, value);
-    
-    res.json({ 
-      message: 'Order updated successfully', 
-      order: updatedOrder 
-    });
+    res.json({ message: 'Order updated successfully', order: updatedOrder });
   } catch (error) {
     console.error('Update order error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
 
-/**
- * อัปเดตสถานะคำสั่งซื้อ (สำหรับ admin)
- */
+// Update order status (admin only)
 export const updateOrderStatus = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { status, notes } = req.body;
     
-    if (!status) {
-      res.status(400).json({ message: 'Status is required' });
-      return;
-    }
-    
-    // เฉพาะ admin เท่านั้นที่สามารถอัปเดตสถานะได้
-    if (req.user && req.user.role !== 'admin') {
-      res.status(403).json({ message: 'Not authorized to update order status' });
-      return;
-    }
+    if (!status) return res.status(400).json({ message: 'Status is required' });
+    if (req.user?.role !== 'admin') return res.status(403).json({ message: 'Not authorized to update order status' });
 
     const order = await OrderModel.findById(id);
-    
-    if (!order) {
-      res.status(404).json({ message: 'Order not found' });
-      return;
-    }
+    if (!order) return res.status(404).json({ message: 'Order not found' });
 
-    // อัปเดตสถานะคำสั่งซื้อ
+    // Update status and create tracking event
     const updatedOrder = await OrderModel.updateStatus(id, status);
+    await TrackingDataModel.create({ order_id: id, status, notes });
     
-    // สร้างข้อมูลการติดตามใหม่
-    await TrackingDataModel.create({
-      order_id: id,
-      status,
-      notes
-    });
-    
-    res.json({ 
-      message: 'Order status updated successfully', 
-      order: updatedOrder 
-    });
+    res.json({ message: 'Order status updated successfully', order: updatedOrder });
   } catch (error) {
     console.error('Update order status error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
 
-/**
- * ยกเลิกคำสั่งซื้อ
- */
+// Cancel order
 export const cancelOrder = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    
     const order = await OrderModel.findById(id);
     
-    if (!order) {
-      res.status(404).json({ message: 'Order not found' });
-      return;
-    }
+    if (!order) return res.status(404).json({ message: 'Order not found' });
 
-    // ตรวจสอบว่าเป็นเจ้าของคำสั่งซื้อหรือเป็น admin
+    // Check permission
     if (req.user && (order.user_id !== req.user.id && req.user.role !== 'admin')) {
-      res.status(403).json({ message: 'Not authorized to cancel this order' });
-      return;
+      return res.status(403).json({ message: 'Not authorized to cancel this order' });
     }
 
-    // ตรวจสอบว่าคำสั่งซื้อสามารถยกเลิกได้
+    // Check if order can be cancelled
     const nonCancelableStatuses = ['delivered', 'cancelled'];
     if (nonCancelableStatuses.includes(order.status)) {
-      res.status(400).json({ 
-        message: `Cannot cancel order with status: ${order.status}` 
-      });
-      return;
+      return res.status(400).json({ message: `Cannot cancel order with status: ${order.status}` });
     }
 
-    // อัปเดตสถานะเป็น cancelled
+    // Cancel order and create tracking event
     const updatedOrder = await OrderModel.updateStatus(id, 'cancelled');
-    
-    // สร้างข้อมูลการติดตามใหม่
     await TrackingDataModel.create({
       order_id: id,
       status: 'Cancelled',
       notes: req.body.reason || 'Order cancelled by user'
     });
     
-    res.json({ 
-      message: 'Order cancelled successfully', 
-      order: updatedOrder 
-    });
+    res.json({ message: 'Order cancelled successfully', order: updatedOrder });
   } catch (error) {
     console.error('Cancel order error:', error);
     res.status(500).json({ message: 'Server error' });

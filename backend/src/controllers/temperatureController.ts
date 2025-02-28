@@ -1,9 +1,8 @@
-// backend/src/controllers/temperatureController.ts
 import { Request, Response } from 'express';
-import { getRepository } from 'typeorm';
-import { TemperatureLog } from '../entities/TemperatureLog';
-import { Order } from '../entities/Order';
+import { TemperatureLogModel } from '../models/TemperatureLog';
+import { OrderModel } from '../models/Order';
 
+// Add temperature log
 export const addTemperatureLog = async (req: Request, res: Response) => {
   try {
     const { orderId, temperature, humidity, notes } = req.body;
@@ -14,43 +13,29 @@ export const addTemperatureLog = async (req: Request, res: Response) => {
     }
     
     // Check if order exists
-    const orderRepository = getRepository(Order);
-    const order = await orderRepository.findOne({ where: { id: orderId } });
+    const order = await OrderModel.findById(orderId);
+    if (!order) return res.status(404).json({ message: 'Order not found' });
     
-    if (!order) {
-      return res.status(404).json({ message: 'Order not found' });
-    }
-    
-    // Check for permission (only staff, admin or the order owner can add logs)
+    // Check permission
     if (req.user.role !== 'admin' && req.user.role !== 'staff' && req.user.id !== order.user_id) {
       return res.status(403).json({ message: 'Not authorized to add temperature logs for this order' });
     }
     
     // Set temperature alert based on required range
-    // This could be product-specific in a more sophisticated implementation
-    const minTemp = -20; // Example minimum acceptable temperature
-    const maxTemp = -15; // Example maximum acceptable temperature
+    const [minTemp, maxTemp] = [-20, -15]; // Example temperature range
     const isAlert = temperature < minTemp || temperature > maxTemp;
     
-    // Create new temperature log
-    const temperatureLogRepository = getRepository(TemperatureLog);
-    const newLog = temperatureLogRepository.create({
+    // Create log
+    const newLog = await TemperatureLogModel.create({
       order_id: orderId,
-      staff_id: req.user.role === 'staff' || req.user.role === 'admin' ? req.user.id : null,
       temperature,
       humidity: humidity || null,
-      is_alert: isAlert,
-      input_method: 'manual',
-      notes: notes || null
+      is_alert: isAlert
     });
     
-    await temperatureLogRepository.save(newLog);
-    
-    // If there's an alert, additional notification logic would go here
     if (isAlert) {
-      // Send alert to relevant parties (email, push notification, etc.)
       console.log(`Temperature alert for order ${orderId}: ${temperature}°C`);
-      // logAlertService.recordAlert(newLog.id, orderId, temperature, minTemp, maxTemp);
+      // Additional alert handling could go here
     }
     
     return res.status(201).json({ 
@@ -61,5 +46,54 @@ export const addTemperatureLog = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Add temperature log error:', error);
     return res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// Get temperature logs by order ID
+export const getTemperatureByOrderId = async (req: Request, res: Response) => {
+  try {
+    const { orderId } = req.params;
+    const logs = await TemperatureLogModel.findByOrderId(orderId);
+    res.json({ temperatureLogs: logs });
+  } catch (error) {
+    console.error('Get temperature logs error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// Get temperature statistics by order ID
+export const getTemperatureStats = async (req: Request, res: Response) => {
+  try {
+    const { orderId } = req.params;
+    const stats = await TemperatureLogModel.getTemperatureStats(orderId);
+    res.json({ stats });
+  } catch (error) {
+    console.error('Get temperature stats error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// Get all temperature alerts (admin only)
+export const getAlerts = async (req: Request, res: Response) => {
+  try {
+    const limit = parseInt(req.query.limit as string) || 50;
+    const offset = parseInt(req.query.offset as string) || 0;
+    const alerts = await TemperatureLogModel.findAlerts(limit, offset);
+    res.json({ alerts });
+  } catch (error) {
+    console.error('Get temperature alerts error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// Get temperature alerts by order ID
+export const getAlertsByOrderId = async (req: Request, res: Response) => {
+  try {
+    const { orderId } = req.params;
+    const alerts = await TemperatureLogModel.findAlertsByOrderId(orderId);
+    res.json({ alerts });
+  } catch (error) {
+    console.error('Get temperature alerts by order ID error:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 };
