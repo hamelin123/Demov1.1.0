@@ -1,27 +1,17 @@
-import express, { Request, Response } from 'express';
+import express from 'express';
 import { register, login, refreshToken, getMe } from '../controllers/authController';
 import { authenticate } from '../middleware/auth';
+import { validateBody } from '../middleware/validation';
+import { userSchema } from '../utils/validators';
 
 const router = express.Router();
 
-// เส้นทางสำหรับการสมัครสมาชิก
-router.post('/register', (req: Request, res: Response) => {
-  register(req, res);
-});
+// Public routes
+router.post('/register', validateBody(userSchema), register);
+router.post('/login', login);
+router.post('/refresh-token', refreshToken);
 
-// เส้นทางสำหรับการเข้าสู่ระบบ
-router.post('/login', (req: Request, res: Response) => {
-  login(req, res);
-});
-
-// เส้นทางสำหรับการรีเฟรช token
-router.post('/refresh-token', (req: Request, res: Response) => {
-  refreshToken(req, res);
-});
-
-// เส้นทางสำหรับดึงข้อมูลผู้ใช้ปัจจุบัน - ใช้ any แทนประเภทที่ถูกต้อง
-router.get('/me', authenticate as any, (req: Request, res: Response) => {
-  getMe(req, res);
-});
+// Protected routes
+router.get('/me', authenticate, getMe);
 
 export default router;

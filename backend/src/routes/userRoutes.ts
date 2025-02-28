@@ -1,14 +1,8 @@
-import express, { Request, Response } from 'express';
+import express from 'express';
 import { 
-  getUserProfile, 
-  updateUserProfile, 
-  changePassword,
-  getAllUsers,
-  createUser,
-  getUserById,
-  updateUser,
-  updateUserStatus,
-  deleteUser
+  getUserProfile, updateUserProfile, changePassword,
+  getAllUsers, createUser, getUserById,
+  updateUser, updateUserStatus, deleteUser
 } from '../controllers/userController';
 import { authenticate, authorize } from '../middleware/auth';
 import { validateBody } from '../middleware/validation';
@@ -16,68 +10,21 @@ import { userSchema, updateUserStatusSchema } from '../utils/validators';
 
 const router = express.Router();
 
-// Routes ที่ทุกคนเข้าถึงได้ (ต้องใช้ authenticate)
-// ดึงข้อมูลโปรไฟล์ของตัวเอง
-router.get('/profile', authenticate, (req: Request, res: Response) => {
-  getUserProfile(req, res);
-});
+// Use authentication for all routes
+router.use(authenticate);
 
-// อัปเดตข้อมูลโปรไฟล์ของตัวเอง
-router.put('/profile', authenticate, (req: Request, res: Response) => {
-  updateUserProfile(req, res);
-});
+// User routes
+router.get('/profile', getUserProfile);
+router.put('/profile', updateUserProfile);
+router.post('/change-password', changePassword);
 
-// เปลี่ยนรหัสผ่าน
-router.post('/change-password', authenticate, (req: Request, res: Response) => {
-  changePassword(req, res);
-});
-
-// Routes สำหรับผู้ดูแลระบบเท่านั้น
-// ดึงผู้ใช้ทั้งหมด
-router.get('/', authenticate, authorize(['admin']), (req: Request, res: Response) => {
-  getAllUsers(req, res);
-});
-
-// สร้างผู้ใช้ใหม่
-router.post(
-  '/', 
-  authenticate, 
-  authorize(['admin']), 
-  validateBody(userSchema),
-  (req: Request, res: Response) => {
-    createUser(req, res);
-  }
-);
-
-// ดึงข้อมูลผู้ใช้ตาม ID
-router.get('/:id', authenticate, authorize(['admin']), (req: Request, res: Response) => {
-  getUserById(req, res);
-});
-
-// อัปเดตข้อมูลผู้ใช้ตาม ID
-router.put(
-  '/:id', 
-  authenticate, 
-  authorize(['admin']), 
-  (req: Request, res: Response) => {
-    updateUser(req, res);
-  }
-);
-
-// เปลี่ยนสถานะผู้ใช้ (active/inactive)
-router.patch(
-  '/:id/status', 
-  authenticate, 
-  authorize(['admin']), 
-  validateBody(updateUserStatusSchema),
-  (req: Request, res: Response) => {
-    updateUserStatus(req, res);
-  }
-);
-
-// ลบผู้ใช้
-router.delete('/:id', authenticate, authorize(['admin']), (req: Request, res: Response) => {
-  deleteUser(req, res);
-});
+// Admin-only routes
+router.use(authorize(['admin']));
+router.get('/', getAllUsers);
+router.post('/', validateBody(userSchema), createUser);
+router.get('/:id', getUserById);
+router.put('/:id', updateUser);
+router.patch('/:id/status', validateBody(updateUserStatusSchema), updateUserStatus);
+router.delete('/:id', deleteUser);
 
 export default router;

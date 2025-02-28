@@ -23,9 +23,7 @@ interface CreateTrackingDataInput {
 export class TrackingDataModel {
   private static pool: Pool = db;
 
-  /**
-   * สร้างข้อมูลการติดตามใหม่
-   */
+  // Create tracking data
   static async create(data: CreateTrackingDataInput): Promise<TrackingData> {
     const result = await this.pool.query(
       `INSERT INTO tracking_data 
@@ -33,116 +31,73 @@ export class TrackingDataModel {
       VALUES ($1, $2, $3, $4, $5, $6) 
       RETURNING *`,
       [
-        uuidv4(),
-        data.order_id,
-        data.vehicle_id || null,
-        data.status,
-        data.location || null,
-        data.notes || null
+        uuidv4(), data.order_id, data.vehicle_id || null,
+        data.status, data.location || null, data.notes || null
       ]
     );
-
     return result.rows[0];
   }
 
-  /**
-   * ค้นหาข้อมูลการติดตามตาม ID
-   */
+  // Find by ID
   static async findById(id: string): Promise<TrackingData | null> {
     const result = await this.pool.query('SELECT * FROM tracking_data WHERE id = $1', [id]);
-    
-    if (result.rows.length === 0) {
-      return null;
-    }
-    
-    return result.rows[0];
+    return result.rows.length ? result.rows[0] : null;
   }
 
-  /**
-   * ค้นหาข้อมูลการติดตามทั้งหมดของคำสั่งซื้อ
-   */
+  // Find all by order ID
   static async findByOrderId(orderId: string): Promise<TrackingData[]> {
     const result = await this.pool.query(
       'SELECT * FROM tracking_data WHERE order_id = $1 ORDER BY timestamp DESC',
       [orderId]
     );
-    
     return result.rows;
   }
 
-  /**
-   * ค้นหาข้อมูลการติดตามล่าสุดของคำสั่งซื้อ
-   */
+  // Find latest by order ID
   static async findLatestByOrderId(orderId: string): Promise<TrackingData | null> {
     const result = await this.pool.query(
       'SELECT * FROM tracking_data WHERE order_id = $1 ORDER BY timestamp DESC LIMIT 1',
       [orderId]
     );
-    
-    if (result.rows.length === 0) {
-      return null;
-    }
-    
-    return result.rows[0];
+    return result.rows.length ? result.rows[0] : null;
   }
 
-  /**
-   * อัปเดตข้อมูลการติดตาม
-   */
+  // Update tracking data
   static async update(id: string, data: Partial<CreateTrackingDataInput>): Promise<TrackingData | null> {
-    // สร้าง query สำหรับฟิลด์ที่ต้องการอัปเดต
-    const updateFields: string[] = [];
+    const fields: string[] = [];
     const values: any[] = [];
     let paramCount = 1;
 
+    // Build dynamic query
     Object.entries(data).forEach(([key, value]) => {
       if (value !== undefined) {
-        updateFields.push(`${key} = $${paramCount}`);
+        fields.push(`${key} = $${paramCount}`);
         values.push(value);
         paramCount++;
       }
     });
 
-    if (updateFields.length === 0) {
-      return null;
-    }
+    if (!fields.length) return null;
     
-    // เพิ่ม ID เป็นพารามิเตอร์สุดท้าย
     values.push(id);
-
-    const query = `
-      UPDATE tracking_data 
-      SET ${updateFields.join(', ')} 
-      WHERE id = $${paramCount} 
-      RETURNING *
-    `;
-
+    const query = `UPDATE tracking_data SET ${fields.join(', ')} WHERE id = $${paramCount} RETURNING *`;
     const result = await this.pool.query(query, values);
     
-    if (result.rows.length === 0) {
-      return null;
-    }
-    
-    return result.rows[0];
+    return result.rows.length ? result.rows[0] : null;
   }
 
-  /**
-   * ลบข้อมูลการติดตาม
-   */
+  // Delete tracking data
   static async delete(id: string): Promise<boolean> {
     const result = await this.pool.query('DELETE FROM tracking_data WHERE id = $1', [id]);
     return result.rowCount > 0;
   }
 
-  /**
-   * ค้นหาข้อมูลการติดตามตามสถานะ
-   */
+  // Find by status
   static async findByStatus(status: string, limit: number = 100, offset: number = 0): Promise<TrackingData[]> {
     const result = await this.pool.query(
       'SELECT * FROM tracking_data WHERE status = $1 ORDER BY timestamp DESC LIMIT $2 OFFSET $3',
       [status, limit, offset]
     );
-    
     return result.rows;
   }
 }

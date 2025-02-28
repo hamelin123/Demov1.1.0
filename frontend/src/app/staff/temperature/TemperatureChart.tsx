@@ -1,9 +1,8 @@
-// frontend/src/components/temperature/TemperatureChart.tsx
+// Optimized TemperatureChart.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useI18n } from '@/i18n';
-import { ArrowLeft, ArrowRight, Thermometer, Droplets, Info } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { ArrowLeft, ArrowRight, Thermometer, Info } from 'lucide-react';
 
 interface TemperatureLogData {
   id: string;
@@ -17,111 +16,120 @@ interface TemperatureChartProps {
   data: TemperatureLogData[];
   acceptableRange?: { min: number; max: number };
   showHumidity?: boolean;
+  title?: string;
+  language?: 'en' | 'th';
 }
 
-export const TemperatureChart: React.FC<TemperatureChartProps> = ({ 
+export function TemperatureChart({ 
   data,
   acceptableRange = { min: -20, max: -15 },
-  showHumidity = true
-}) => {
-  const { t } = useI18n();
-  const [chartData, setChartData] = useState<TemperatureLogData[]>([]);
+  showHumidity = true,
+  title,
+  language = 'en'
+}: TemperatureChartProps) {
   const [page, setPage] = useState(0);
-  const [pageSize, setPageSize] = useState(12); // 12 data points per page
+  const [pageSize] = useState(12);
   
-  useEffect(() => {
-    // Sort data by timestamp
-    const sortedData = [...data].sort((a, b) => 
+  const t = {
+    en: {
+      temperatureHistory: 'Temperature History',
+      temperature: 'Temperature',
+      humidity: 'Humidity',
+      acceptableRange: 'Acceptable Range',
+      minTemp: 'Min Temp',
+      avgTemp: 'Avg Temp',
+      maxTemp: 'Max Temp',
+      alertsDetected: 'Temperature Alerts Detected',
+      alertsDescription: 'Temperature readings outside acceptable range.',
+      noData: 'No temperature data available',
+      pageXofY: 'Page {current} of {total}'
+    },
+    th: {
+      temperatureHistory: 'ประวัติอุณหภูมิ',
+      temperature: 'อุณหภูมิ',
+      humidity: 'ความชื้น',
+      acceptableRange: 'ช่วงอุณหภูมิที่ยอมรับได้',
+      minTemp: 'อุณหภูมิต่ำสุด',
+      avgTemp: 'อุณหภูมิเฉลี่ย',
+      maxTemp: 'อุณหภูมิสูงสุด',
+      alertsDetected: 'ตรวจพบการแจ้งเตือนอุณหภูมิ',
+      alertsDescription: 'อุณหภูมิบางค่าอยู่นอกช่วงที่ยอมรับได้',
+      noData: 'ไม่มีข้อมูลอุณหภูมิ',
+      pageXofY: 'หน้า {current} จาก {total}'
+    }
+  }[language];
+  
+  // Sort data and compute stats once
+  const { sortedData, stats, totalPages, currentPageData } = useMemo(() => {
+    if (!data.length) return { sortedData: [], stats: {min: 0, max: 0, avg: 0}, totalPages: 0, currentPageData: [] };
+    
+    const sorted = [...data].sort((a, b) => 
       new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
     );
     
-    setChartData(sortedData);
-  }, [data]);
+    const temps = sorted.map(d => d.temperature);
+    const stats = {
+      min: Math.min(...temps),
+      max: Math.max(...temps),
+      avg: temps.reduce((sum, t) => sum + t, 0) / temps.length
+    };
+    
+    const totalPages = Math.ceil(sorted.length / pageSize);
+    const current = sorted.slice(page * pageSize, (page + 1) * pageSize);
+    
+    return { sortedData: sorted, stats, totalPages, currentPageData: current };
+  }, [data, page, pageSize]);
   
-  // Calculate total pages
-  const totalPages = Math.ceil(chartData.length / pageSize);
-  
-  // Get current page data
-  const currentPageData = chartData.slice(page * pageSize, (page + 1) * pageSize);
-  
-  // Calculate statistics
-  const minTemp = Math.min(...chartData.map(d => d.temperature));
-  const maxTemp = Math.max(...chartData.map(d => d.temperature));
-  const avgTemp = chartData.length 
-    ? chartData.reduce((sum, d) => sum + d.temperature, 0) / chartData.length 
-    : 0;
-  
-  // Handle pagination
-  const handlePrevPage = () => {
-    if (page > 0) {
-      setPage(page - 1);
-    }
-  };
-  
-  const handleNextPage = () => {
-    if (page < totalPages - 1) {
-      setPage(page + 1);
-    }
-  };
-  
-  // Calculate chart dimensions
-  const chartHeight = 200;
-  const chartWidth = 100;
-  
-  // Calculate temperature range for scaling
-  const tempRange = 15; // Range in degrees to display
-  const minDisplay = Math.min(acceptableRange.min - 5, minTemp - 2);
-  const maxDisplay = Math.max(acceptableRange.max + 5, maxTemp + 2);
-  
-  // Function to calculate y position
-  const getYPosition = (temp: number) => {
-    const range = maxDisplay - minDisplay;
-    const percentage = (temp - minDisplay) / range;
-    return chartHeight - (percentage * chartHeight);
-  };
-  
-  // No data
-  if (chartData.length === 0) {
+  // No data check
+  if (!sortedData.length) {
     return (
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-        <h3 className="text-lg font-semibold mb-4">{t('temperature.temperatureHistory')}</h3>
+        <h3 className="text-lg font-semibold mb-4">{title || t.temperatureHistory}</h3>
         <div className="flex flex-col items-center justify-center py-8">
           <Thermometer size={48} className="text-gray-400 mb-4" />
-          <p className="text-gray-500 dark:text-gray-400">{t('temperature.noData')}</p>
+          <p className="text-gray-500 dark:text-gray-400">{t.noData}</p>
         </div>
       </div>
     );
   }
   
+  // Chart dimensions
+  const chartHeight = 200;
+  
+  // Calculate temperature range for scaling
+  const minDisplay = Math.min(acceptableRange.min - 5, stats.min - 2);
+  const maxDisplay = Math.max(acceptableRange.max + 5, stats.max + 2);
+  
+  // Function to calculate y position
+  const getYPosition = (temp: number) => {
+    const range = maxDisplay - minDisplay;
+    if (range === 0) return chartHeight / 2;
+    return chartHeight - ((temp - minDisplay) / range * chartHeight);
+  };
+
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
       <div className="flex justify-between items-center mb-6">
-        <h3 className="text-lg font-semibold">{t('temperature.temperatureHistory')}</h3>
+        <h3 className="text-lg font-semibold">{title || t.temperatureHistory}</h3>
         
         {totalPages > 1 && (
           <div className="flex items-center space-x-2">
             <button 
-              onClick={handlePrevPage}
+              onClick={() => setPage(p => Math.max(0, p - 1))}
               disabled={page === 0}
-              className={`p-1 rounded-full ${
-                page === 0 
-                  ? 'text-gray-400 cursor-not-allowed' 
-                  : 'text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30'
-              }`}
+              className={`p-1 rounded-full ${page === 0 ? 'text-gray-400' : 'text-blue-600'}`}
+              aria-label="Previous page"
             >
               <ArrowLeft size={16} />
             </button>
             <span className="text-sm text-gray-600 dark:text-gray-400">
-              {t('common.pageXofY', { current: page + 1, total: totalPages })}
+              {t.pageXofY.replace('{current}', String(page + 1)).replace('{total}', String(totalPages))}
             </span>
             <button 
-              onClick={handleNextPage}
+              onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
               disabled={page >= totalPages - 1}
-              className={`p-1 rounded-full ${
-                page >= totalPages - 1
-                  ? 'text-gray-400 cursor-not-allowed' 
-                  : 'text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30'
-              }`}
+              className={`p-1 rounded-full ${page >= totalPages - 1 ? 'text-gray-400' : 'text-blue-600'}`}
+              aria-label="Next page"
             >
               <ArrowRight size={16} />
             </button>
@@ -133,41 +141,35 @@ export const TemperatureChart: React.FC<TemperatureChartProps> = ({
       <div className="flex flex-wrap gap-4 mb-4">
         <div className="flex items-center">
           <div className="w-3 h-3 rounded-full bg-blue-500 mr-1"></div>
-          <span className="text-sm text-gray-600 dark:text-gray-400">
-            {t('temperature.temperature')}
-          </span>
+          <span className="text-sm text-gray-600 dark:text-gray-400">{t.temperature}</span>
         </div>
         
         {showHumidity && (
           <div className="flex items-center">
             <div className="w-3 h-3 rounded-full bg-green-500 mr-1"></div>
-            <span className="text-sm text-gray-600 dark:text-gray-400">
-              {t('temperature.humidity')}
-            </span>
+            <span className="text-sm text-gray-600 dark:text-gray-400">{t.humidity}</span>
           </div>
         )}
         
         <div className="flex items-center">
           <div className="w-6 h-2 bg-red-300 dark:bg-red-700 mr-1"></div>
-          <span className="text-sm text-gray-600 dark:text-gray-400">
-            {t('temperature.acceptableRange')}
-          </span>
+          <span className="text-sm text-gray-600 dark:text-gray-400">{t.acceptableRange}</span>
         </div>
       </div>
       
       {/* Statistics */}
       <div className="grid grid-cols-3 gap-4 mb-6">
         <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-md">
-          <div className="text-xs text-gray-500 dark:text-gray-400">{t('temperature.minTemp')}</div>
-          <div className="text-lg font-semibold text-blue-600 dark:text-blue-400">{minTemp.toFixed(1)}°C</div>
+          <div className="text-xs text-gray-500 dark:text-gray-400">{t.minTemp}</div>
+          <div className="text-lg font-semibold text-blue-600 dark:text-blue-400">{stats.min.toFixed(1)}°C</div>
         </div>
         <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-md">
-          <div className="text-xs text-gray-500 dark:text-gray-400">{t('temperature.avgTemp')}</div>
-          <div className="text-lg font-semibold text-blue-600 dark:text-blue-400">{avgTemp.toFixed(1)}°C</div>
+          <div className="text-xs text-gray-500 dark:text-gray-400">{t.avgTemp}</div>
+          <div className="text-lg font-semibold text-blue-600 dark:text-blue-400">{stats.avg.toFixed(1)}°C</div>
         </div>
         <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-md">
-          <div className="text-xs text-gray-500 dark:text-gray-400">{t('temperature.maxTemp')}</div>
-          <div className="text-lg font-semibold text-blue-600 dark:text-blue-400">{maxTemp.toFixed(1)}°C</div>
+          <div className="text-xs text-gray-500 dark:text-gray-400">{t.maxTemp}</div>
+          <div className="text-lg font-semibold text-blue-600 dark:text-blue-400">{stats.max.toFixed(1)}°C</div>
         </div>
       </div>
       
@@ -189,24 +191,7 @@ export const TemperatureChart: React.FC<TemperatureChartProps> = ({
           <div>{minDisplay.toFixed(0)}°C</div>
         </div>
         
-        {/* Data points */}
-        {currentPageData.map((point, index) => {
-          const x = (index / (currentPageData.length - 1 || 1)) * 100;
-          const y = getYPosition(point.temperature);
-          
-          return (
-            <div key={point.id || index} className="absolute" style={{ left: `${x}%`, top: `${y}px` }}>
-              <div 
-                className={`w-3 h-3 rounded-full -ml-1.5 -mt-1.5 ${
-                  point.is_alert ? 'bg-red-500' : 'bg-blue-500'
-                }`}
-                title={`${point.temperature.toFixed(1)}°C - ${new Date(point.timestamp).toLocaleString()}`}
-              ></div>
-            </div>
-          );
-        })}
-        
-        {/* Connect the dots */}
+        {/* Connect the dots with a line */}
         <svg className="absolute top-0 left-0 w-full h-full" style={{ overflow: 'visible' }}>
           <polyline
             points={currentPageData.map((point, index) => {
@@ -219,33 +204,46 @@ export const TemperatureChart: React.FC<TemperatureChartProps> = ({
             strokeWidth="2"
           />
         </svg>
+        
+        {/* Data points */}
+        {currentPageData.map((point, index) => {
+          const x = (index / (currentPageData.length - 1 || 1)) * 100;
+          const y = getYPosition(point.temperature);
+          
+          return (
+            <div 
+              key={point.id || index} 
+              className="absolute" 
+              style={{ left: `${x}%`, top: `${y}px` }}
+              title={`${point.temperature.toFixed(1)}°C - ${new Date(point.timestamp).toLocaleString()}`}
+            >
+              <div className={`w-3 h-3 rounded-full -ml-1.5 -mt-1.5 ${point.is_alert ? 'bg-red-500' : 'bg-blue-500'}`}></div>
+            </div>
+          );
+        })}
       </div>
       
       {/* X-axis labels */}
       <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-2 px-1">
-        {currentPageData.map((point, index) => {
-          // Show labels for first, last, and every 4th point to avoid overcrowding
-          if (index === 0 || index === currentPageData.length - 1 || index % 4 === 0) {
-            return (
-              <div key={index} className="text-center" style={{ width: '40px', marginLeft: index === 0 ? 0 : `-20px` }}>
-                {new Date(point.timestamp).toLocaleDateString()}
-              </div>
-            );
-          }
-          return null;
-        })}
+        {currentPageData.filter((_, i) => i === 0 || i === currentPageData.length - 1 || i % 4 === 0)
+          .map((point, i) => (
+            <div key={i} className="text-center w-10 overflow-hidden text-ellipsis">
+              {new Date(point.timestamp).toLocaleDateString()}
+            </div>
+          ))
+        }
       </div>
       
       {/* Alert information */}
-      {chartData.some(d => d.is_alert) && (
+      {sortedData.some(d => d.is_alert) && (
         <div className="mt-6 p-3 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-md flex items-start">
           <Info size={18} className="mr-2 mt-0.5 flex-shrink-0" />
           <div>
-            <p className="text-sm font-medium">{t('temperature.alertsDetected')}</p>
-            <p className="text-xs mt-1">{t('temperature.alertsDescription')}</p>
+            <p className="text-sm font-medium">{t.alertsDetected}</p>
+            <p className="text-xs mt-1">{t.alertsDescription}</p>
           </div>
         </div>
       )}
     </div>
   );
-};
+}

@@ -7,10 +7,16 @@ import {
 
 const router = express.Router();
 
-router.get('/order/:orderId', authenticate, getTemperatureByOrderId);
-router.get('/stats/:orderId', authenticate, getTemperatureStats);
-router.post('/log', authenticate, addTemperatureLog);
-router.get('/alerts', authenticate, authorize(['admin']), getAlerts);
-router.get('/alerts/:orderId', authenticate, getAlertsByOrderId);
+// Group routes by auth requirements
+router.use(authenticate);
+
+// Routes that any authenticated user can access
+router.get('/order/:orderId', getTemperatureByOrderId);
+router.get('/stats/:orderId', getTemperatureStats);
+router.post('/log', addTemperatureLog);
+router.get('/alerts/:orderId', getAlertsByOrderId);
+
+// Admin-only routes
+router.get('/alerts', authorize(['admin']), getAlerts);
 
 export default router;

@@ -21,95 +21,61 @@ interface CreateTemperatureLogData {
 export class TemperatureLogModel {
   private static pool: Pool = db;
 
-  /**
-   * สร้างบันทึกอุณหภูมิใหม่
-   */
+  // Create temperature log
   static async create(data: CreateTemperatureLogData): Promise<TemperatureLog> {
     const result = await this.pool.query(
       `INSERT INTO temperature_logs 
       (id, order_id, temperature, humidity, is_alert) 
       VALUES ($1, $2, $3, $4, $5) 
       RETURNING *`,
-      [
-        uuidv4(),
-        data.order_id,
-        data.temperature,
-        data.humidity || null,
-        data.is_alert || false
-      ]
+      [uuidv4(), data.order_id, data.temperature, data.humidity || null, data.is_alert || false]
     );
-
     return result.rows[0];
   }
 
-  /**
-   * ค้นหาบันทึกอุณหภูมิตาม ID
-   */
+  // Find by ID
   static async findById(id: string): Promise<TemperatureLog | null> {
     const result = await this.pool.query('SELECT * FROM temperature_logs WHERE id = $1', [id]);
-    
-    if (result.rows.length === 0) {
-      return null;
-    }
-    
-    return result.rows[0];
+    return result.rows.length ? result.rows[0] : null;
   }
 
-  /**
-   * ค้นหาบันทึกอุณหภูมิตาม order_id
-   */
+  // Find all by order ID
   static async findByOrderId(orderId: string): Promise<TemperatureLog[]> {
     const result = await this.pool.query(
       'SELECT * FROM temperature_logs WHERE order_id = $1 ORDER BY timestamp DESC',
       [orderId]
     );
-    
     return result.rows;
   }
 
-  /**
-   * ค้นหาบันทึกอุณหภูมิล่าสุดตาม order_id
-   */
+  // Find latest by order ID
   static async findLatestByOrderId(orderId: string): Promise<TemperatureLog | null> {
     const result = await this.pool.query(
       'SELECT * FROM temperature_logs WHERE order_id = $1 ORDER BY timestamp DESC LIMIT 1',
       [orderId]
     );
-    
-    if (result.rows.length === 0) {
-      return null;
-    }
-    
-    return result.rows[0];
+    return result.rows.length ? result.rows[0] : null;
   }
 
-  /**
-   * ค้นหาการแจ้งเตือนอุณหภูมิ
-   */
+  // Find all alerts
   static async findAlerts(limit: number = 100, offset: number = 0): Promise<TemperatureLog[]> {
     const result = await this.pool.query(
       'SELECT * FROM temperature_logs WHERE is_alert = true ORDER BY timestamp DESC LIMIT $1 OFFSET $2',
       [limit, offset]
     );
-    
     return result.rows;
   }
 
-  /**
-   * ค้นหาการแจ้งเตือนอุณหภูมิตาม order_id
-   */
+  // Find alerts by order ID
   static async findAlertsByOrderId(orderId: string): Promise<TemperatureLog[]> {
     const result = await this.pool.query(
       'SELECT * FROM temperature_logs WHERE order_id = $1 AND is_alert = true ORDER BY timestamp DESC',
       [orderId]
     );
-    
     return result.rows;
   }
 
-  /**
-   * รับข้อมูลสถิติอุณหภูมิตาม order_id
-   */
+  // Get temperature statistics
   static async getTemperatureStats(orderId: string): Promise<{
     min: number;
     max: number;
@@ -129,28 +95,18 @@ export class TemperatureLogModel {
       [orderId]
     );
     
-    if (result.rows.length === 0) {
-      return {
-        min: 0,
-        max: 0,
-        avg: 0,
-        count: 0,
-        alertCount: 0
-      };
-    }
-    
-    return {
+    return result.rows.length ? {
       min: parseFloat(result.rows[0].min) || 0,
       max: parseFloat(result.rows[0].max) || 0,
       avg: parseFloat(result.rows[0].avg) || 0,
       count: parseInt(result.rows[0].count, 10) || 0,
       alertCount: parseInt(result.rows[0].alert_count, 10) || 0
+    } : {
+      min: 0, max: 0, avg: 0, count: 0, alertCount: 0
     };
   }
 
-  /**
-   * ลบบันทึกอุณหภูมิ
-   */
+  // Delete log
   static async delete(id: string): Promise<boolean> {
     const result = await this.pool.query('DELETE FROM temperature_logs WHERE id = $1', [id]);
     return result.rowCount > 0;

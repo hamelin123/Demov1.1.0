@@ -1,48 +1,66 @@
-// src/components/Footer.tsx
 'use client';
 
 import Link from 'next/link';
-import { Facebook, Twitter, Instagram, Linkedin, MapPin, Phone, Mail } from 'lucide-react';
-import { useLanguage } from '@/providers/LanguageProvider';
-import { useEffect, useState } from 'react';
+import {Facebook, Twitter, Instagram, Linkedin, MapPin, Phone, Mail} from 'lucide-react';
+import {useLanguage} from '@/providers/LanguageProvider';
+import {useState, useEffect} from 'react';
 
 export function Footer() {
-  const { language, t } = useLanguage();
+  const {language, t} = useLanguage();
   const [mounted, setMounted] = useState(false);
   
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  useEffect(() => { setMounted(true); }, []);
   
-  if (!mounted) {
-    return <footer className="py-6 bg-[#0f172a]"></footer>;
-  }
+  if (!mounted) return <footer className="py-6 bg-[#0f172a]"></footer>;
+
+  const contactInfo = {
+    address: language === 'en' 
+      ? '123 Logistics Way, Bangkok, Thailand 10110'
+      : '123 โลจิสติกส์เวย์, กรุงเทพฯ, ประเทศไทย 10110',
+    phone: '+66 2 123 4567',
+    email: 'info@coldchain.example'
+  };
+
+  const links = {
+    quick: [
+      {href: '/about', label: language === 'en' ? 'About Us' : 'เกี่ยวกับเรา'},
+      {href: '/services', label: t('services', 'navigation')},
+      {href: '/tracking', label: t('tracking', 'navigation')},
+      {href: '/contact', label: t('contact', 'navigation')}
+    ],
+    services: [
+      {href: '/services#temperature-control', label: language === 'en' ? 'Temperature Control' : 'การควบคุมอุณหภูมิ'},
+      {href: '/services#real-time-tracking', label: language === 'en' ? 'Real-Time Tracking' : 'การติดตามแบบเรียลไทม์'},
+      {href: '/services#quality-assurance', label: language === 'en' ? 'Quality Assurance' : 'การรับประกันคุณภาพ'},
+      {href: '/services#cold-storage', label: language === 'en' ? 'Cold Storage' : 'คลังเย็น'}
+    ]
+  };
+
+  const socials = [
+    {icon: <Facebook size={20} />, href: '#'},
+    {icon: <Twitter size={20} />, href: '#'},
+    {icon: <Instagram size={20} />, href: '#'},
+    {icon: <Linkedin size={20} />, href: '#'}
+  ];
 
   return (
-    <footer className="footer py-12 bg-[#0f172a]">
+    <footer className="bg-[#0f172a] text-gray-300 py-12">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Company Info */}
           <div>
             <h2 className="text-xl font-bold text-white mb-4">ColdChain</h2>
-            <p className="mb-4 text-gray-300">
+            <p className="mb-4">
               {language === 'en' 
-                ? "Premium temperature-controlled logistics solutions for pharmaceutical, food, and other temperature-sensitive products."
-                : "โซลูชันโลจิสติกส์ควบคุมอุณหภูมิระดับพรีเมียมสำหรับผลิตภัณฑ์ยา อาหาร และผลิตภัณฑ์ที่ไวต่ออุณหภูมิอื่นๆ"}
+                ? "Premium temperature-controlled logistics solutions."
+                : "โซลูชันโลจิสติกส์ควบคุมอุณหภูมิระดับพรีเมียม"}
             </p>
             <div className="flex space-x-4">
-              <Link href="#" className="text-gray-300 hover:text-white transition duration-300">
-                <Facebook size={20} />
-              </Link>
-              <Link href="#" className="text-gray-300 hover:text-white transition duration-300">
-                <Twitter size={20} />
-              </Link>
-              <Link href="#" className="text-gray-300 hover:text-white transition duration-300">
-                <Instagram size={20} />
-              </Link>
-              <Link href="#" className="text-gray-300 hover:text-white transition duration-300">
-                <Linkedin size={20} />
-              </Link>
+              {socials.map((link, i) => (
+                <Link key={i} href={link.href} className="text-gray-300 hover:text-white">
+                  {link.icon}
+                </Link>
+              ))}
             </div>
           </div>
           
@@ -52,26 +70,13 @@ export function Footer() {
               {language === 'en' ? 'Quick Links' : 'ลิงก์ด่วน'}
             </h3>
             <ul className="space-y-2">
-              <li>
-                <Link href="/about" className="text-gray-300 hover:text-white transition duration-300">
-                  {language === 'en' ? 'About Us' : 'เกี่ยวกับเรา'}
-                </Link>
-              </li>
-              <li>
-                <Link href="/services" className="text-gray-300 hover:text-white transition duration-300">
-                  {t('services', 'navigation')}
-                </Link>
-              </li>
-              <li>
-                <Link href="/tracking" className="text-gray-300 hover:text-white transition duration-300">
-                  {t('tracking', 'navigation')}
-                </Link>
-              </li>
-              <li>
-                <Link href="/contact" className="text-gray-300 hover:text-white transition duration-300">
-                  {t('contact', 'navigation')}
-                </Link>
-              </li>
+              {links.quick.map((link, i) => (
+                <li key={i}>
+                  <Link href={link.href} className="text-gray-300 hover:text-white">
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
           
@@ -81,26 +86,13 @@ export function Footer() {
               {t('services', 'navigation')}
             </h3>
             <ul className="space-y-2">
-              <li>
-                <Link href="/services#temperature-control" className="text-gray-300 hover:text-white transition duration-300">
-                  {language === 'en' ? 'Temperature Control' : 'การควบคุมอุณหภูมิ'}
-                </Link>
-              </li>
-              <li>
-                <Link href="/services#real-time-tracking" className="text-gray-300 hover:text-white transition duration-300">
-                  {language === 'en' ? 'Real-Time Tracking' : 'การติดตามแบบเรียลไทม์'}
-                </Link>
-              </li>
-              <li>
-                <Link href="/services#quality-assurance" className="text-gray-300 hover:text-white transition duration-300">
-                  {language === 'en' ? 'Quality Assurance' : 'การรับประกันคุณภาพ'}
-                </Link>
-              </li>
-              <li>
-                <Link href="/services#cold-storage" className="text-gray-300 hover:text-white transition duration-300">
-                  {language === 'en' ? 'Cold Storage' : 'คลังเย็น'}
-                </Link>
-              </li>
+              {links.services.map((link, i) => (
+                <li key={i}>
+                  <Link href={link.href} className="text-gray-300 hover:text-white">
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
           
@@ -112,26 +104,22 @@ export function Footer() {
             <ul className="space-y-2">
               <li className="flex items-start">
                 <MapPin size={18} className="mr-2 mt-1 flex-shrink-0 text-blue-300" />
-                <span className="text-gray-300">
-                  {language === 'en' 
-                    ? '123 Logistics Way, Bangkok, Thailand 10110'
-                    : '123 โลจิสติกส์เวย์, กรุงเทพฯ, ประเทศไทย 10110'}
-                </span>
+                <span>{contactInfo.address}</span>
               </li>
               <li className="flex items-center">
                 <Phone size={18} className="mr-2 flex-shrink-0 text-blue-300" />
-                <span className="text-gray-300">+66 2 123 4567</span>
+                <span>{contactInfo.phone}</span>
               </li>
               <li className="flex items-center">
                 <Mail size={18} className="mr-2 flex-shrink-0 text-blue-300" />
-                <span className="text-gray-300">info@coldchain.example</span>
+                <span>{contactInfo.email}</span>
               </li>
             </ul>
           </div>
         </div>
 
         {/* Copyright */}
-        <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-300">
+        <div className="border-t border-gray-800 mt-12 pt-8 text-center">
           <p>
             {language === 'en'
               ? '© 2025 ColdChain Logistics. All rights reserved.'

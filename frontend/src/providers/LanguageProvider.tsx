@@ -1,115 +1,83 @@
-// src/providers/LanguageProvider.tsx
+// Optimized LanguageProvider
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, {createContext, useContext, useState, useEffect} from 'react';
 
 type Language = 'en' | 'th';
+type Translations = Record<Language, Record<string, any>>;
 
-interface LanguageContextType {
-  language: Language;
-  setLanguage: (lang: Language) => void;
-  t: (key: string, section?: string) => string;
-}
-
-// โหลดไฟล์ภาษา
-const translations = {
+// Simplified translations
+const translations: Translations = {
   en: {
-    navigation: {
-      services: 'Services',
-      tracking: 'Tracking',
-      contact: 'Contact',
-      login: 'Login'
-    },
+    navigation: {services: 'Services', tracking: 'Tracking', contact: 'Contact', login: 'Login'},
     hero: {
       title: "Temperature-Controlled Logistics Excellence",
       subtitle: "Advanced Cold Chain Solutions with Real-Time Monitoring",
       getStarted: "Get Started",
       learnMore: "Learn More"
     },
-    // เพิ่มคำแปลอื่นๆ ตามที่ต้องการ
+    common: {backToHome: "Back to Home", loading: "Loading...", save: "Save"}
   },
   th: {
-    navigation: {
-      services: 'บริการ',
-      tracking: 'ติดตามสินค้า',
-      contact: 'ติดต่อเรา',
-      login: 'เข้าสู่ระบบ'
-    },
+    navigation: {services: 'บริการ', tracking: 'ติดตามสินค้า', contact: 'ติดต่อเรา', login: 'เข้าสู่ระบบ'},
     hero: {
       title: "ความเป็นเลิศด้านโลจิสติกส์ควบคุมอุณหภูมิ",
       subtitle: "โซลูชันโซ่ความเย็นขั้นสูงพร้อมการติดตามแบบเรียลไทม์",
       getStarted: "เริ่มต้นใช้งาน",
       learnMore: "เรียนรู้เพิ่มเติม"
     },
-    // เพิ่มคำแปลอื่นๆ ตามที่ต้องการ
+    common: {backToHome: "กลับไปหน้าหลัก", loading: "กำลังโหลด...", save: "บันทึก"}
   }
 };
 
-const LanguageContext = createContext<LanguageContextType>({
-  language: 'en',
-  setLanguage: () => {},
-  t: () => '',
+const LanguageContext = createContext({
+  language: 'en' as Language,
+  setLanguage: (lang: Language) => {},
+  t: (key: string, section?: string): string => key
 });
 
 export const useLanguage = () => useContext(LanguageContext);
 
-export function LanguageProvider({ children }: { children: React.ReactNode }) {
+export function LanguageProvider({children}: {children: React.ReactNode}) {
   const [language, setLanguageState] = useState<Language>('en');
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const storedLanguage = localStorage.getItem('language');
-      if (storedLanguage === 'en' || storedLanguage === 'th') {
-        setLanguageState(storedLanguage);
-      }
+      const storedLang = localStorage.getItem('language') as Language;
+      if (storedLang === 'en' || storedLang === 'th') setLanguageState(storedLang);
       setMounted(true);
     }
   }, []);
 
-// src/providers/LanguageProvider.tsx
-// เพิ่มเติมในฟังก์ชัน setLanguage
-const setLanguage = (newLanguage: Language) => {
-    setLanguageState(newLanguage);
+  const setLanguage = (newLang: Language) => {
+    setLanguageState(newLang);
     if (typeof window !== 'undefined') {
-      localStorage.setItem('language', newLanguage);
-      // ส่งเหตุการณ์แจ้งเตือนการเปลี่ยนภาษา
-      window.dispatchEvent(new Event('languageChange')); // เพิ่มบรรทัดนี้
-      console.log('Language changed to:', newLanguage);
+      localStorage.setItem('language', newLang);
+      window.dispatchEvent(new Event('languageChange'));
     }
   };
 
-  // Function to get translation
+  // Optimized translation function
   const t = (key: string, section?: string): string => {
     try {
-      if (section) {
-        return translations[language][section]?.[key] || key;
-      }
+      if (section) return translations[language][section]?.[key] || key;
       
-      // Split the key by dots to navigate nested objects
       const keys = key.split('.');
       let result = translations[language];
-      
       for (const k of keys) {
         if (!result[k]) return key;
         result = result[k];
       }
-      
       return result || key;
-    } catch (error) {
-      console.error('Translation error:', error);
+    } catch {
       return key;
     }
   };
 
-  // Avoid hydration mismatch
-  if (!mounted) {
-    return <>{children}</>;
-  }
-
-  return (
-    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+  return mounted ? (
+    <LanguageContext.Provider value={{language, setLanguage, t}}>
       {children}
     </LanguageContext.Provider>
-  );
+  ) : <>{children}</>;
 }
