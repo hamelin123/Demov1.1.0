@@ -17,7 +17,6 @@ export default function TrackingPage() {
   const [theme, setTheme] = useState('light');
   const [language, setLanguage] = useState('th');
 
-  // ตรวจสอบและตั้งค่า theme และ language จาก localStorage เมื่อโหลดหน้า
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const storedTheme = localStorage.getItem('theme') || 'light';
@@ -25,15 +24,10 @@ export default function TrackingPage() {
       setTheme(storedTheme);
       setLanguage(storedLanguage);
       
-      // ตั้งค่า dark mode สำหรับ HTML element
-      if (storedTheme === 'dark') {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
+      if (storedTheme === 'dark') document.documentElement.classList.add('dark');
+      else document.documentElement.classList.remove('dark');
     }
     
-    // ตรวจสอบ query string เพื่อดูว่ามี tracking number หรือไม่
     const queryParams = new URLSearchParams(window.location.search);
     const trackingParam = queryParams.get('tracking');
     if (trackingParam) {
@@ -42,7 +36,6 @@ export default function TrackingPage() {
     }
   }, []);
 
-  // Language translations
   const translations = {
     th: {
       title: "ติดตามสินค้า",
@@ -114,10 +107,8 @@ export default function TrackingPage() {
     }
   };
 
-  // Get translations based on selected language
   const t = translations[language];
 
-  // ข้อมูลจำลองสำหรับการทดสอบ
   const mockTrackingData = {
     "TH123456789": {
       orderNumber: "TH123456789",
@@ -185,68 +176,52 @@ export default function TrackingPage() {
     }
   };
 
-  // เปลี่ยนภาษา
   const toggleLanguage = () => {
     const newLanguage = language === 'th' ? 'en' : 'th';
     setLanguage(newLanguage);
     localStorage.setItem('language', newLanguage);
   };
 
-  // เปลี่ยน theme
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
     localStorage.setItem('theme', newTheme);
-    
-    // ตั้งค่า dark mode สำหรับ HTML element
-    if (newTheme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
+    if (newTheme === 'dark') document.documentElement.classList.add('dark');
+    else document.documentElement.classList.remove('dark');
   };
 
-      // ค้นหาข้อมูลการติดตาม
-    // ส่วนของฟังก์ชัน handleTrackingSearch ใน src/app/tracking/page.tsx
-// ค้นหาข้อมูลการติดตาม
-    const handleTrackingSearch = async (number = trackingNumber) => {
-      if (!number) {
-        setTrackingError(t.error);
-        return;
-      }
+  const handleTrackingSearch = async (number = trackingNumber) => {
+    if (!number) {
+      setTrackingError(t.error);
+      return;
+    }
 
-      setIsLoading(true);
-      setTrackingError('');
+    setIsLoading(true);
+    setTrackingError('');
 
-      try {
-        // จำลองการรอข้อมูล
-        await new Promise(resolve => setTimeout(resolve, 1000));
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      const normalizedInput = number.trim().toUpperCase();
+      const matchingTrackingKey = Object.keys(mockTrackingData).find(key => 
+        key.toUpperCase() === normalizedInput
+      );
 
-        // เพิ่มช่องทางค้นหาโดยไม่สนใจตัวพิมพ์ใหญ่-เล็ก และตัดช่องว่าง
-        const normalizedInput = number.trim().toUpperCase();
-        
-        // ตรวจสอบว่าหมายเลขติดตามที่ระบุตรงกับหมายเลขใน mockTrackingData หรือไม่
-        const matchingTrackingKey = Object.keys(mockTrackingData).find(key => 
-          key.toUpperCase() === normalizedInput
-        );
-
-        if (matchingTrackingKey) {
-          setTrackingResult(mockTrackingData[matchingTrackingKey]);
-          // อัปเดต URL ด้วย query param
-          const newUrl = `${window.location.pathname}?tracking=${matchingTrackingKey}`;
-          window.history.pushState({ path: newUrl }, '', newUrl);
-        } else {
-          setTrackingError(t.error);
-          setTrackingResult(null);
-        }
-      } catch (err) {
-        console.error('Tracking error:', err);
+      if (matchingTrackingKey) {
+        setTrackingResult(mockTrackingData[matchingTrackingKey]);
+        const newUrl = `${window.location.pathname}?tracking=${matchingTrackingKey}`;
+        window.history.pushState({ path: newUrl }, '', newUrl);
+      } else {
         setTrackingError(t.error);
         setTrackingResult(null);
-      } finally {
-        setIsLoading(false);
       }
-    };
+    } catch (err) {
+      console.error('Tracking error:', err);
+      setTrackingError(t.error);
+      setTrackingResult(null);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -254,9 +229,7 @@ export default function TrackingPage() {
   };
 
   return (
-    <div className={`min-h-screen flex flex-col ${
-      theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'
-    }`}>
+    <div className={`min-h-screen flex flex-col ${theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
       {/* Header */}
       <header className="p-4 flex justify-between items-center bg-white dark:bg-gray-800 shadow-sm">
         <Link href="/" className="flex items-center gap-2 text-blue-600 hover:text-blue-800">
@@ -266,21 +239,13 @@ export default function TrackingPage() {
         <div className="flex gap-4">
           <button 
             onClick={toggleLanguage}
-            className={`px-3 py-1 rounded-md ${
-              theme === 'dark' 
-                ? 'bg-gray-700 text-gray-200 hover:bg-gray-600' 
-                : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-            }`}
+            className={`px-3 py-1 rounded-md ${theme === 'dark' ? 'bg-gray-700 text-gray-200 hover:bg-gray-600' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'}`}
           >
             {language === 'th' ? 'EN' : 'ไทย'}
           </button>
           <button 
             onClick={toggleTheme}
-            className={`px-3 py-1 rounded-md ${
-              theme === 'dark' 
-                ? 'bg-gray-700 text-gray-200 hover:bg-gray-600' 
-                : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-            }`}
+            className={`px-3 py-1 rounded-md ${theme === 'dark' ? 'bg-gray-700 text-gray-200 hover:bg-gray-600' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'}`}
           >
             {theme === 'dark' ? '☀️' : '🌙'}
           </button>
@@ -291,9 +256,7 @@ export default function TrackingPage() {
       <main className="flex-grow container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           {/* Tracking Form */}
-          <div className={`mb-10 p-8 rounded-xl ${
-            theme === 'dark' ? 'bg-gray-800' : 'bg-white'
-          } shadow-lg`}>
+          <div className={`mb-10 p-8 rounded-xl ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} shadow-lg`}>
             <h1 className="text-3xl font-bold mb-4 text-center">{t.title}</h1>
             <p className="text-center mb-6 text-gray-500 dark:text-gray-400">{t.subtitle}</p>
             
@@ -349,9 +312,7 @@ export default function TrackingPage() {
           {trackingResult && (
             <div className="space-y-8">
               {/* Shipment Info Card */}
-              <div className={`p-6 rounded-xl ${
-                theme === 'dark' ? 'bg-gray-800' : 'bg-white'
-              } shadow-lg`}>
+              <div className={`p-6 rounded-xl ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} shadow-lg`}>
                 <h2 className="text-xl font-semibold mb-6 flex items-center">
                   <Package size={20} className="mr-2 text-blue-600 dark:text-blue-400" />
                   {t.shipmentInfo}
@@ -451,9 +412,7 @@ export default function TrackingPage() {
               </div>
               
               {/* Tracking History */}
-              <div className={`p-6 rounded-xl ${
-                theme === 'dark' ? 'bg-gray-800' : 'bg-white'
-              } shadow-lg`}>
+              <div className={`p-6 rounded-xl ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} shadow-lg`}>
                 <h2 className="text-xl font-semibold mb-6 flex items-center">
                   <Truck size={20} className="mr-2 text-blue-600 dark:text-blue-400" />
                   {t.trackingHistory}
@@ -461,11 +420,7 @@ export default function TrackingPage() {
                 
                 <div className="relative">
                   {/* Timeline line */}
-                  <div 
-                    className={`absolute h-full left-5 ${
-                      theme === 'dark' ? 'border-l border-gray-700' : 'border-l border-gray-300'
-                    }`}
-                  ></div>
+                  <div className={`absolute h-full left-5 ${theme === 'dark' ? 'border-l border-gray-700' : 'border-l border-gray-300'}`}></div>
                   
                   {/* Timeline events */}
                   <div className="space-y-8 relative">
@@ -507,9 +462,7 @@ export default function TrackingPage() {
               </div>
               
               {/* Temperature Graph Placeholder */}
-              <div className={`p-6 rounded-xl ${
-                theme === 'dark' ? 'bg-gray-800' : 'bg-white'
-              } shadow-lg`}>
+              <div className={`p-6 rounded-xl ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} shadow-lg`}>
                 <h2 className="text-xl font-semibold mb-6 flex items-center">
                   <ThermometerSnowflake size={20} className="mr-2 text-blue-600 dark:text-blue-400" />
                   {t.temperatureLog}
@@ -524,27 +477,21 @@ export default function TrackingPage() {
                 </div>
                 
                 <div className="grid grid-cols-3 gap-4 mt-6">
-                  <div className={`p-4 rounded-lg ${
-                    theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'
-                  }`}>
+                  <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'}`}>
                     <div className="text-sm text-gray-500 dark:text-gray-400">{t.minTemp}</div>
                     <div className="text-xl font-semibold text-blue-600 dark:text-blue-400">
                       {Math.min(...trackingResult.temperatureLogs.map(log => log.temperature))}°C
                     </div>
                   </div>
                   
-                  <div className={`p-4 rounded-lg ${
-                    theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'
-                  }`}>
+                  <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'}`}>
                     <div className="text-sm text-gray-500 dark:text-gray-400">{t.maxTemp}</div>
                     <div className="text-xl font-semibold text-blue-600 dark:text-blue-400">
                       {Math.max(...trackingResult.temperatureLogs.map(log => log.temperature))}°C
                     </div>
                   </div>
                   
-                  <div className={`p-4 rounded-lg ${
-                    theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'
-                  }`}>
+                  <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'}`}>
                     <div className="text-sm text-gray-500 dark:text-gray-400">{t.avgTemp}</div>
                     <div className="text-xl font-semibold text-blue-600 dark:text-blue-400">
                       {(trackingResult.temperatureLogs.reduce((sum, log) => sum + log.temperature, 0) / 
