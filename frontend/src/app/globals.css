@@ -3,194 +3,144 @@
 @tailwind utilities;
 
 :root {
-  --primary-color: #0066FF;
-  --secondary-color: #00C2FF;
-  --background-color: #FFFFFF;
-  --text-color: #333333;
-  --card-bg-color: #F5F9FF;
-  --card-text-color: #333333;
-  --nav-bg-color: #FFFFFF;
-  --hero-bg-color: #EBF5FF;
-  --footer-bg-color: #0066FF;
-  --footer-text-color: #FFFFFF;
-  --section-bg-color: #FFFFFF;
-  --heading-color: #0066FF;
+  --primary: #0066FF;
+  --secondary: #00C2FF;
+  --bg: #FFF;
+  --text: #333;
+  --card-bg: #F5F9FF;
+  --card-text: #333;
+  --nav-bg: #FFF;
+  --hero-bg: #EBF5FF;
+  --footer-bg: #0066FF;
+  --footer-text: #FFF;
+  --section-bg: #FFF;
+  --heading: #0066FF;
 }
 
-/* เพิ่มเติมหลังจากคำสั่ง .dark ที่คุณมีอยู่แล้ว */
 .dark {
-  --background-color: #0A1929;
-  --text-color: #FFFFFF;
-  --card-bg-color: #1E293B;
-  --card-text-color: #E5E7EB;
-  --nav-bg-color: #0A1929;
-  --hero-bg-color: #0F172A;
-  --footer-bg-color: #0F172A;
-  --footer-text-color: #E5E7EB;
-  --section-bg-color: #111827;
-  --heading-color: #60A5FA;
-  /* เพิ่มความคมชัดให้กับปุ่มและองค์ประกอบอื่นๆ */
-  --button-highlight: #3B82F6;
+  --bg: #0A1929;
+  --text: #FFF;
+  --card-bg: #1E293B;
+  --card-text: #E5E7EB;
+  --nav-bg: #0A1929;
+  --hero-bg: #0F172A;
+  --footer-bg: #0F172A;
+  --footer-text: #E5E7EB;
+  --section-bg: #111827;
+  --heading: #60A5FA;
+  --btn-highlight: #3B82F6;
   --card-highlight: #2563EB;
 }
 
-/* ปรับปรุงสีปุ่มให้มีความคมชัดมากขึ้นในโหมดกลางคืน */
-.dark .btn-primary {
-  @apply bg-blue-500 hover:bg-blue-400;
-}
+.dark .btn-primary { @apply bg-blue-500 hover:bg-blue-400; }
+.dark .btn-secondary { @apply border-blue-400 text-blue-300 hover:bg-blue-800/30; }
 
-.dark .btn-secondary {
-  @apply border-blue-400 text-blue-300 hover:bg-blue-800/30;
-}
-/* Base Styles */
 body {
-  background-color: var(--background-color);
-  color: var(--text-color);
+  background-color: var(--bg);
+  color: var(--text);
   transition: all 0.3s ease;
 }
 
-/* Hero Section */
 .hero {
-  background-color: var(--hero-bg-color);
-  color: var(--text-color);
+  background-color: var(--hero-bg);
+  color: var(--text);
   transition: all 0.3s ease;
 }
 
-/* Services Section */
 .services-section {
-  background-color: var(--section-bg-color);
+  background-color: var(--section-bg);
   padding: 4rem 0;
   transition: all 0.3s ease;
 }
 
-.services-section h2 {
-  color: var(--heading-color);
-}
+.services-section h2 { color: var(--heading); }
 
-/* Card Styles */
 .feature-card {
-  background-color: var(--card-bg-color);
-  color: var(--card-text-color);
+  background-color: var(--card-bg);
+  color: var(--card-text);
   border-radius: 0.5rem;
   padding: 1.5rem;
   transition: all 0.3s ease;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.dark .feature-card {
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-}
+.dark .feature-card { box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3); }
 
-/* CTA Section */
 .cta-section {
-  background-color: var(--primary-color);
+  background-color: var(--primary);
   color: white;
   transition: all 0.3s ease;
 }
 
-/* Footer Styles */
 .footer {
-  background-color: var(--footer-bg-color);
-  color: var(--footer-text-color);
+  background-color: var(--footer-bg);
+  color: var(--footer-text);
   transition: all 0.3s ease;
 }
 
-/* Custom Utilities */
 .text-gradient {
-  @apply bg-gradient-to-r from-blue-400 to-blue-600 
-         bg-clip-text text-transparent;
+  @apply bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent;
 }
 
-/* Button Styles */
 .btn-primary {
-  @apply bg-blue-600 hover:bg-blue-700 text-white 
-         transition-all duration-300 transform hover:-translate-y-0.5;
+  @apply bg-blue-600 hover:bg-blue-700 text-white transition-all duration-300 transform hover:-translate-y-0.5;
 }
 
 .btn-secondary {
-  @apply border border-blue-600 text-blue-600 hover:bg-blue-50
-         dark:border-blue-400 dark:text-blue-400 dark:hover:bg-blue-900/20 
-         transition-all duration-300;
+  @apply border border-blue-600 text-blue-600 hover:bg-blue-50 dark:border-blue-400 dark:text-blue-400 dark:hover:bg-blue-900/20 transition-all duration-300;
 }
 
-/* Navigation */
 .navbar {
-  background-color: var(--nav-bg-color);
-  color: var(--text-color);
+  background-color: var(--nav-bg);
+  color: var(--text);
   transition: all 0.3s ease;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.dark .navbar {
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-}
+.dark .navbar { box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); }
 
 .nav-link {
-  color: var(--text-color);
+  color: var(--text);
   transition: color 0.2s ease;
 }
 
-.nav-link:hover {
-  color: var(--primary-color);
-}
+.nav-link:hover { color: var(--primary); }
 
-/* Additional Utilities */
 .section-heading {
-  color: var(--heading-color);
+  color: var(--heading);
   font-weight: bold;
   font-size: 2rem;
   margin-bottom: 2rem;
   text-align: center;
 }
 
-/* ทำให้การเปลี่ยนธีมมีความราบรื่นแต่รวดเร็ว */
 .theme-transition {
-  transition: background-color 0.2s ease-in-out, 
-              color 0.2s ease-in-out, 
-              border-color 0.2s ease-in-out,
-              box-shadow 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out, 
+              border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
 
-/* ให้มั่นใจว่าเนื้อหาที่มองเห็นได้ชัดเจนในทุกธีม */
-.text-adaptive {
-  @apply text-gray-900 dark:text-gray-100;
-}
+.text-adaptive { @apply text-gray-900 dark:text-gray-100; }
+.bg-adaptive { @apply bg-white dark:bg-gray-800; }
 
-.bg-adaptive {
-  @apply bg-white dark:bg-gray-800;
-}
-
-/* เพิ่มความโดดเด่นให้กับการ์ดบริการ */
 .service-card {
-  @apply bg-white dark:bg-gray-800 
-         shadow-md dark:shadow-gray-900/30
+  @apply bg-white dark:bg-gray-800 shadow-md dark:shadow-gray-900/30
          hover:shadow-lg dark:hover:shadow-blue-900/20
-         border border-gray-100 dark:border-gray-700
-         rounded-xl overflow-hidden
-         transition-all duration-300;
-}
-
-.service-card:hover {
-  @apply transform -translate-y-1;
+         border border-gray-100 dark:border-gray-700 rounded-xl overflow-hidden
+         transition-all duration-300 transform hover:-translate-y-1;
 }
 
 .service-icon {
-  @apply text-blue-600 dark:text-blue-400 p-3 
-         bg-blue-50 dark:bg-blue-900/20
-         rounded-full w-16 h-16 flex items-center justify-center
-         mx-auto mb-4;
+  @apply text-blue-600 dark:text-blue-400 p-3 bg-blue-50 dark:bg-blue-900/20
+         rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4;
 }
-/* ทำให้ปุ่มเปลี่ยนภาษาโดดเด่นขึ้น */
+
 .language-switcher {
-  @apply flex items-center p-2 
-         bg-gray-100 dark:bg-gray-700
+  @apply flex items-center p-2 bg-gray-100 dark:bg-gray-700
          hover:bg-gray-200 dark:hover:bg-gray-600
-         text-gray-700 dark:text-gray-300
-         rounded-md transition-colors duration-300;
+         text-gray-700 dark:text-gray-300 rounded-md transition-colors duration-300;
 }
 
 .language-switcher-active {
-  @apply bg-blue-100 dark:bg-blue-900 
-         text-blue-700 dark:text-blue-300
+  @apply bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300
          hover:bg-blue-200 dark:hover:bg-blue-800;
 }
