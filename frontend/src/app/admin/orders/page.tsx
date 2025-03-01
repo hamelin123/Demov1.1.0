@@ -1,14 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { 
-  Plus, Search, Edit, Trash, ChevronLeft, ChevronRight,
-  Package, RefreshCw, Filter, FileText, X, Check, AlertTriangle, Calendar
-} from 'lucide-react';
+import { Plus, Search, Edit, Trash, ChevronLeft, ChevronRight, Package, RefreshCw, Filter, FileText, Calendar } from 'lucide-react';
 import { useLanguage } from '@/providers/LanguageProvider';
-import { getOrders, updateOrderStatus, deleteOrder } from '@/lib/api';
-import ConfirmDeleteModal from '@/components/admin/ConfirmDeleteModal';
 
 export default function AdminOrdersPage() {
   const { language } = useLanguage();
@@ -28,186 +23,87 @@ export default function AdminOrdersPage() {
   const [showFilters, setShowFilters] = useState(false);
 
   // Translations
-  const translations = {
+  const t = {
     th: {
-      orders: 'จัดการคำสั่งซื้อ',
-      searchPlaceholder: 'ค้นหาตามหมายเลขคำสั่งซื้อ หรือชื่อลูกค้า',
-      addOrder: 'เพิ่มคำสั่งซื้อ',
-      refresh: 'รีเฟรช',
-      filter: 'ตัวกรอง',
-      orderNumber: 'หมายเลขคำสั่งซื้อ',
-      customer: 'ลูกค้า',
-      status: 'สถานะ',
-      total: 'ยอดรวม',
-      weight: 'น้ำหนัก',
-      createdAt: 'สร้างเมื่อ',
-      estimatedDelivery: 'กำหนดส่ง',
-      actions: 'การกระทำ',
-      edit: 'แก้ไข',
-      delete: 'ลบ',
-      view: 'ดู',
-      changeStatus: 'เปลี่ยนสถานะ',
-      pending: 'รอดำเนินการ',
-      processing: 'กำลังดำเนินการ',
-      inTransit: 'กำลังจัดส่ง',
-      delivered: 'จัดส่งแล้ว',
-      cancelled: 'ยกเลิก',
-      previous: 'ก่อนหน้า',
-      next: 'ถัดไป',
-      showingResults: 'แสดง {start}-{end} จาก {total} รายการ',
-      selectAll: 'เลือกทั้งหมด',
-      confirmDelete: 'ยืนยันการลบ',
-      confirmDeleteMessage: 'คุณแน่ใจหรือไม่ว่าต้องการลบคำสั่งซื้อนี้? การกระทำนี้ไม่สามารถเรียกคืนได้',
-      cancel: 'ยกเลิก',
-      noOrders: 'ไม่พบคำสั่งซื้อ',
-      loading: 'กำลังโหลด...',
-      statusFilter: 'กรองตามสถานะ',
-      dateFilter: 'กรองตามวันที่',
-      startDate: 'วันที่เริ่มต้น',
-      endDate: 'วันที่สิ้นสุด',
-      applyFilter: 'ใช้ตัวกรอง',
-      clearFilter: 'ล้างตัวกรอง',
-      allStatus: 'ทุกสถานะ',
-      temperature: 'อุณหภูมิที่กำหนด',
-      warning: 'การแจ้งเตือน',
-      sender: 'ผู้ส่ง',
-      recipient: 'ผู้รับ'
+      orders: 'จัดการคำสั่งซื้อ', searchPlaceholder: 'ค้นหาตามหมายเลขคำสั่งซื้อ หรือชื่อลูกค้า',
+      addOrder: 'เพิ่มคำสั่งซื้อ', refresh: 'รีเฟรช', filter: 'ตัวกรอง', orderNumber: 'หมายเลขคำสั่งซื้อ',
+      customer: 'ลูกค้า', status: 'สถานะ', total: 'ยอดรวม', weight: 'น้ำหนัก',
+      createdAt: 'สร้างเมื่อ', estimatedDelivery: 'กำหนดส่ง', actions: 'การกระทำ',
+      edit: 'แก้ไข', delete: 'ลบ', view: 'ดู', changeStatus: 'เปลี่ยนสถานะ',
+      pending: 'รอดำเนินการ', processing: 'กำลังดำเนินการ', inTransit: 'กำลังจัดส่ง',
+      delivered: 'จัดส่งแล้ว', cancelled: 'ยกเลิก', previous: 'ก่อนหน้า', next: 'ถัดไป',
+      showingResults: 'แสดง {start}-{end} จาก {total} รายการ', selectAll: 'เลือกทั้งหมด',
+      confirmDelete: 'ยืนยันการลบ', confirmDeleteMessage: 'คุณแน่ใจหรือไม่ว่าต้องการลบคำสั่งซื้อนี้? การกระทำนี้ไม่สามารถเรียกคืนได้',
+      cancel: 'ยกเลิก', noOrders: 'ไม่พบคำสั่งซื้อ', loading: 'กำลังโหลด...',
+      statusFilter: 'กรองตามสถานะ', dateFilter: 'กรองตามวันที่',
+      startDate: 'วันที่เริ่มต้น', endDate: 'วันที่สิ้นสุด', applyFilter: 'ใช้ตัวกรอง',
+      clearFilter: 'ล้างตัวกรอง', allStatus: 'ทุกสถานะ', temperature: 'อุณหภูมิที่กำหนด',
+      warning: 'การแจ้งเตือน', sender: 'ผู้ส่ง', recipient: 'ผู้รับ'
     },
     en: {
-      orders: 'Manage Orders',
-      searchPlaceholder: 'Search by order number or customer name',
-      addOrder: 'Add Order',
-      refresh: 'Refresh',
-      filter: 'Filter',
-      orderNumber: 'Order Number',
-      customer: 'Customer',
-      status: 'Status',
-      total: 'Total',
-      weight: 'Weight',
-      createdAt: 'Created At',
-      estimatedDelivery: 'Est. Delivery',
-      actions: 'Actions',
-      edit: 'Edit',
-      delete: 'Delete',
-      view: 'View',
-      changeStatus: 'Change Status',
-      pending: 'Pending',
-      processing: 'Processing',
-      inTransit: 'In Transit',
-      delivered: 'Delivered',
-      cancelled: 'Cancelled',
-      previous: 'Previous',
-      next: 'Next',
-      showingResults: 'Showing {start}-{end} of {total} results',
-      selectAll: 'Select All',
-      confirmDelete: 'Confirm Delete',
-      confirmDeleteMessage: 'Are you sure you want to delete this order? This action cannot be undone.',
-      cancel: 'Cancel',
-      noOrders: 'No orders found',
-      loading: 'Loading...',
-      statusFilter: 'Filter by Status',
-      dateFilter: 'Filter by Date',
-      startDate: 'Start Date',
-      endDate: 'End Date',
-      applyFilter: 'Apply Filter',
-      clearFilter: 'Clear Filter',
-      allStatus: 'All Status',
-      temperature: 'Required Temp',
-      warning: 'Warning',
-      sender: 'Sender',
-      recipient: 'Recipient'
+      orders: 'Manage Orders', searchPlaceholder: 'Search by order number or customer name',
+      addOrder: 'Add Order', refresh: 'Refresh', filter: 'Filter', orderNumber: 'Order Number',
+      customer: 'Customer', status: 'Status', total: 'Total', weight: 'Weight',
+      createdAt: 'Created At', estimatedDelivery: 'Est. Delivery', actions: 'Actions',
+      edit: 'Edit', delete: 'Delete', view: 'View', changeStatus: 'Change Status',
+      pending: 'Pending', processing: 'Processing', inTransit: 'In Transit',
+      delivered: 'Delivered', cancelled: 'Cancelled', previous: 'Previous', next: 'Next',
+      showingResults: 'Showing {start}-{end} of {total} results', selectAll: 'Select All',
+      confirmDelete: 'Confirm Delete', confirmDeleteMessage: 'Are you sure you want to delete this order? This action cannot be undone.',
+      cancel: 'Cancel', noOrders: 'No orders found', loading: 'Loading...',
+      statusFilter: 'Filter by Status', dateFilter: 'Filter by Date',
+      startDate: 'Start Date', endDate: 'End Date', applyFilter: 'Apply Filter',
+      clearFilter: 'Clear Filter', allStatus: 'All Status', temperature: 'Required Temp',
+      warning: 'Warning', sender: 'Sender', recipient: 'Recipient'
     }
-  };
+  }[language];
 
-  const t = translations[language] || translations.en;
+  // Mock data
+  const mockOrders = useMemo(() => [
+    {
+      id: '1', order_number: 'CC-20250227-1001', customer_name: 'บริษัท ฟาร์มาซี จำกัด',
+      sender_name: 'บริษัท ฟาร์มาซี จำกัด', recipient_name: 'โรงพยาบาลศิริราช',
+      status: 'pending', total_amount: '฿32,500', package_weight: '15.5 kg',
+      required_temperature: '-18°C', has_warning: false,
+      created_at: '27 ก.พ. 2025', estimated_delivery_date: '1 มี.ค. 2025'
+    },
+    {
+      id: '2', order_number: 'CC-20250226-1002', customer_name: 'บริษัท อาหารเย็น จำกัด',
+      sender_name: 'บริษัท อาหารเย็น จำกัด', recipient_name: 'ร้านอาหาร เดอะริเวอร์ไซด์',
+      status: 'in-transit', total_amount: '฿18,750', package_weight: '25.0 kg',
+      required_temperature: '2-4°C', has_warning: true,
+      created_at: '26 ก.พ. 2025', estimated_delivery_date: '28 ก.พ. 2025'
+    },
+    {
+      id: '3', order_number: 'CC-20250226-1003', customer_name: 'คลินิกวัคซีน',
+      sender_name: 'คลินิกวัคซีน', recipient_name: 'โรงพยาบาลกรุงเทพ',
+      status: 'processing', total_amount: '฿8,900', package_weight: '5.2 kg',
+      required_temperature: '2-6°C', has_warning: false,
+      created_at: '26 ก.พ. 2025', estimated_delivery_date: '27 ก.พ. 2025'
+    },
+    {
+      id: '4', order_number: 'CC-20250225-1004', customer_name: 'โรงพยาบาลสมิติเวช',
+      sender_name: 'บริษัท ยาและเวชภัณฑ์ จำกัด', recipient_name: 'โรงพยาบาลสมิติเวช',
+      status: 'delivered', total_amount: '฿42,000', package_weight: '12.0 kg',
+      required_temperature: '0-4°C', has_warning: false,
+      created_at: '25 ก.พ. 2025', estimated_delivery_date: '27 ก.พ. 2025'
+    },
+    {
+      id: '5', order_number: 'CC-20250225-1005', customer_name: 'บริษัท วัคซีนไทย จำกัด',
+      sender_name: 'บริษัท วัคซีนไทย จำกัด', recipient_name: 'โรงพยาบาลรามาธิบดี',
+      status: 'cancelled', total_amount: '฿15,300', package_weight: '8.5 kg',
+      required_temperature: '-70°C', has_warning: false,
+      created_at: '25 ก.พ. 2025', estimated_delivery_date: '28 ก.พ. 2025'
+    }
+  ], []);
 
-  // โหลดข้อมูลคำสั่งซื้อ
+  // Load orders data
   useEffect(() => {
     const fetchOrders = async () => {
       try {
         setLoading(true);
-        // ในสถานการณ์จริง จะใช้ API เพื่อดึงข้อมูล
-        // const response = await getOrders(currentPage, pageSize, searchQuery, statusFilter, dateRangeFilter, sortBy, sortDirection);
-        // setOrders(response.orders);
-        // setTotalPages(response.totalPages);
         
-        // Mock data สำหรับการพัฒนา
-        await new Promise(resolve => setTimeout(resolve, 800));
-        
-        const mockOrders = [
-          {
-            id: '1',
-            order_number: 'CC-20250227-1001',
-            customer_name: 'บริษัท ฟาร์มาซี จำกัด',
-            sender_name: 'บริษัท ฟาร์มาซี จำกัด',
-            recipient_name: 'โรงพยาบาลศิริราช',
-            status: 'pending',
-            total_amount: '฿32,500',
-            package_weight: '15.5 kg',
-            required_temperature: '-18°C',
-            has_warning: false,
-            created_at: '27 ก.พ. 2025',
-            estimated_delivery_date: '1 มี.ค. 2025'
-          },
-          {
-            id: '2',
-            order_number: 'CC-20250226-1002',
-            customer_name: 'บริษัท อาหารเย็น จำกัด',
-            sender_name: 'บริษัท อาหารเย็น จำกัด',
-            recipient_name: 'ร้านอาหาร เดอะริเวอร์ไซด์',
-            status: 'in-transit',
-            total_amount: '฿18,750',
-            package_weight: '25.0 kg',
-            required_temperature: '2-4°C',
-            has_warning: true,
-            created_at: '26 ก.พ. 2025',
-            estimated_delivery_date: '28 ก.พ. 2025'
-          },
-          {
-            id: '3',
-            order_number: 'CC-20250226-1003',
-            customer_name: 'คลินิกวัคซีน',
-            sender_name: 'คลินิกวัคซีน',
-            recipient_name: 'โรงพยาบาลกรุงเทพ',
-            status: 'processing',
-            total_amount: '฿8,900',
-            package_weight: '5.2 kg',
-            required_temperature: '2-6°C',
-            has_warning: false,
-            created_at: '26 ก.พ. 2025',
-            estimated_delivery_date: '27 ก.พ. 2025'
-          },
-          {
-            id: '4',
-            order_number: 'CC-20250225-1004',
-            customer_name: 'โรงพยาบาลสมิติเวช',
-            sender_name: 'บริษัท ยาและเวชภัณฑ์ จำกัด',
-            recipient_name: 'โรงพยาบาลสมิติเวช',
-            status: 'delivered',
-            total_amount: '฿42,000',
-            package_weight: '12.0 kg',
-            required_temperature: '0-4°C',
-            has_warning: false,
-            created_at: '25 ก.พ. 2025',
-            estimated_delivery_date: '27 ก.พ. 2025'
-          },
-          {
-            id: '5',
-            order_number: 'CC-20250225-1005',
-            customer_name: 'บริษัท วัคซีนไทย จำกัด',
-            sender_name: 'บริษัท วัคซีนไทย จำกัด',
-            recipient_name: 'โรงพยาบาลรามาธิบดี',
-            status: 'cancelled',
-            total_amount: '฿15,300',
-            package_weight: '8.5 kg',
-            required_temperature: '-70°C',
-            has_warning: false,
-            created_at: '25 ก.พ. 2025',
-            estimated_delivery_date: '28 ก.พ. 2025'
-          }
-        ];
-        
-        // กรองข้อมูลตามเงื่อนไขการค้นหา
+        // Filter orders by search query and status
         let filteredOrders = [...mockOrders];
         
         if (searchQuery) {
@@ -218,18 +114,11 @@ export default function AdminOrdersPage() {
           );
         }
         
-        // กรองตามสถานะ
         if (statusFilter && statusFilter !== 'all') {
           filteredOrders = filteredOrders.filter(order => order.status === statusFilter);
         }
         
-        // กรองตามวันที่ (จำลอง)
-        if (dateRangeFilter.startDate || dateRangeFilter.endDate) {
-          // ในกรณีจริงจะต้องเปรียบเทียบวันที่อย่างถูกต้อง
-          // โค้ดจำลองเท่านั้น
-        }
-        
-        // เรียงลำดับ
+        // Sort orders
         filteredOrders.sort((a, b) => {
           if (sortDirection === 'asc') {
             return a[sortBy] > b[sortBy] ? 1 : -1;
@@ -238,152 +127,104 @@ export default function AdminOrdersPage() {
           }
         });
         
-        // จำลองการแบ่งหน้า
+        // Set pagination
         const totalResults = filteredOrders.length;
         setTotalPages(Math.ceil(totalResults / pageSize));
         
         const startIndex = (currentPage - 1) * pageSize;
         const endIndex = Math.min(startIndex + pageSize, totalResults);
         
-        const paginatedOrders = filteredOrders.slice(startIndex, endIndex);
-        
-        setOrders(paginatedOrders);
+        setOrders(filteredOrders.slice(startIndex, endIndex));
+        setLoading(false);
       } catch (error) {
         console.error('Error fetching orders:', error);
-      } finally {
         setLoading(false);
       }
     };
     
     fetchOrders();
-  }, [searchQuery, statusFilter, dateRangeFilter, currentPage, pageSize, sortBy, sortDirection]);
+  }, [mockOrders, searchQuery, statusFilter, dateRangeFilter, currentPage, pageSize, sortBy, sortDirection]);
 
-  // ฟังก์ชันการเลือกคำสั่งซื้อ
+  // Toggle order selection
   const toggleSelectOrder = (orderId) => {
-    if (selectedOrders.includes(orderId)) {
-      setSelectedOrders(selectedOrders.filter(id => id !== orderId));
-    } else {
-      setSelectedOrders([...selectedOrders, orderId]);
-    }
+    setSelectedOrders(prev => 
+      prev.includes(orderId) ? prev.filter(id => id !== orderId) : [...prev, orderId]
+    );
   };
   
-  // ฟังก์ชันเลือกทุกคำสั่งซื้อในหน้าปัจจุบัน
+  // Toggle select all
   const toggleSelectAll = () => {
-    if (selectedOrders.length === orders.length) {
-      setSelectedOrders([]);
-    } else {
-      setSelectedOrders(orders.map(order => order.id));
-    }
+    setSelectedOrders(prev => prev.length === orders.length ? [] : orders.map(order => order.id));
   };
   
-  // ฟังก์ชันเปลี่ยนหน้า
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-  };
-  
-  // ฟังก์ชันเปลี่ยนการเรียงลำดับ
+  // Handle sorting
   const handleSort = (column) => {
-    if (sortBy === column) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortBy(column);
-      setSortDirection('asc');
-    }
+    setSortDirection(prev => sortBy === column ? (prev === 'asc' ? 'desc' : 'asc') : 'asc');
+    setSortBy(column);
   };
   
-  // ฟังก์ชันแสดง modal ยืนยันการลบ
+  // Confirm delete
   const confirmDelete = (order) => {
     setOrderToDelete(order);
     setShowDeleteModal(true);
   };
   
-  // ฟังก์ชันดำเนินการลบ
-  const handleDelete = async () => {
-    try {
-      setLoading(true);
-      // ในสถานการณ์จริง
-      // await deleteOrder(orderToDelete.id);
-      
-      // จำลองการลบ
-      setOrders(orders.filter(order => order.id !== orderToDelete.id));
-      setSelectedOrders(selectedOrders.filter(id => id !== orderToDelete.id));
-      setShowDeleteModal(false);
-      setOrderToDelete(null);
-    } catch (error) {
-      console.error('Error deleting order:', error);
-    } finally {
-      setLoading(false);
-    }
+  // Handle deletion
+  const handleDelete = () => {
+    setOrders(prev => prev.filter(order => order.id !== orderToDelete.id));
+    setSelectedOrders(prev => prev.filter(id => id !== orderToDelete.id));
+    setShowDeleteModal(false);
+    setOrderToDelete(null);
   };
   
-  // ฟังก์ชันเปลี่ยนสถานะคำสั่งซื้อ
-  const handleStatusChange = async (orderId, newStatus) => {
-    try {
-      setLoading(true);
-      // ในสถานการณ์จริง
-      // await updateOrderStatus(orderId, newStatus);
-      
-      // จำลองการอัปเดตสถานะ
-      setOrders(orders.map(order => {
-        if (order.id === orderId) {
-          return { ...order, status: newStatus };
-        }
-        return order;
-      }));
-    } catch (error) {
-      console.error('Error updating order status:', error);
-    } finally {
-      setLoading(false);
-    }
+  // Update status
+  const handleStatusChange = (orderId, newStatus) => {
+    setOrders(prev => prev.map(order => 
+      order.id === orderId ? {...order, status: newStatus} : order
+    ));
   };
   
-  // ฟังก์ชันล้างตัวกรอง
+  // Clear filters
   const clearFilters = () => {
     setStatusFilter('all');
     setDateRangeFilter({ startDate: '', endDate: '' });
     setSearchQuery('');
   };
   
-  // ฟังก์ชันแสดงสถานะเป็นข้อความ
+  // Get status text
   const getStatusText = (status) => {
-    switch (status) {
-      case 'pending': return t.pending;
-      case 'processing': return t.processing;
-      case 'in-transit': return t.inTransit;
-      case 'delivered': return t.delivered;
-      case 'cancelled': return t.cancelled;
-      default: return status;
-    }
+    const statusMap = {
+      pending: t.pending,
+      processing: t.processing,
+      'in-transit': t.inTransit,
+      delivered: t.delivered,
+      cancelled: t.cancelled
+    };
+    return statusMap[status] || status;
   };
   
-  // ฟังก์ชันกำหนดสีตามสถานะ
+  // Get status colors
   const getStatusColors = (status) => {
-    switch (status) {
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400';
-      case 'processing':
-        return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400';
-      case 'in-transit':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400';
-      case 'delivered':
-        return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
-      case 'cancelled':
-        return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400';
-      default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400';
-    }
+    const colorMap = {
+      pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
+      processing: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400',
+      'in-transit': 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
+      delivered: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
+      cancelled: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+    };
+    return colorMap[status] || 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400';
   };
 
-  // แสดงผลการแบ่งหน้า
+  // Render pagination
   const renderPagination = () => {
     const pageNumbers = [];
-    const maxPagesToShow = 5;
+    const maxPages = 5;
     
-    let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
-    let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+    let startPage = Math.max(1, currentPage - Math.floor(maxPages / 2));
+    let endPage = Math.min(totalPages, startPage + maxPages - 1);
     
-    if (endPage - startPage + 1 < maxPagesToShow) {
-      startPage = Math.max(1, endPage - maxPagesToShow + 1);
+    if (endPage - startPage + 1 < maxPages) {
+      startPage = Math.max(1, endPage - maxPages + 1);
     }
     
     for (let i = startPage; i <= endPage; i++) {
@@ -393,7 +234,7 @@ export default function AdminOrdersPage() {
     return (
       <div className="flex items-center space-x-1">
         <button
-          onClick={() => handlePageChange(currentPage - 1)}
+          onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
           disabled={currentPage === 1}
           className="rounded-md border border-gray-300 px-2 py-1 text-sm dark:border-gray-600 disabled:opacity-50"
         >
@@ -403,11 +244,9 @@ export default function AdminOrdersPage() {
         {pageNumbers.map(page => (
           <button
             key={page}
-            onClick={() => handlePageChange(page)}
+            onClick={() => setCurrentPage(page)}
             className={`rounded-md px-3 py-1 text-sm ${
-              currentPage === page
-                ? 'bg-blue-600 text-white dark:bg-blue-600'
-                : 'bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
+              currentPage === page ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
             }`}
           >
             {page}
@@ -415,7 +254,7 @@ export default function AdminOrdersPage() {
         ))}
         
         <button
-          onClick={() => handlePageChange(currentPage + 1)}
+          onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
           disabled={currentPage === totalPages}
           className="rounded-md border border-gray-300 px-2 py-1 text-sm dark:border-gray-600 disabled:opacity-50"
         >
@@ -425,7 +264,7 @@ export default function AdminOrdersPage() {
     );
   };
 
-  // แสดงข้อความจำนวนผลลัพธ์
+  // Results info
   const renderResultsInfo = () => {
     const startIndex = (currentPage - 1) * pageSize + 1;
     const endIndex = Math.min(startIndex + orders.length - 1, startIndex + pageSize - 1);
@@ -439,13 +278,14 @@ export default function AdminOrdersPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col justify-between space-y-4 sm:flex-row sm:items-center sm:space-y-0">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between sm:space-y-0 space-y-4">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t.orders}</h1>
         
         <div className="flex space-x-3">
           <Link
             href="/admin/orders/create"
-            className="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:hover:bg-blue-600"
+            className="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
           >
             <Plus className="mr-2 h-4 w-4" />
             {t.addOrder}
@@ -456,7 +296,7 @@ export default function AdminOrdersPage() {
               setLoading(true);
               setTimeout(() => setLoading(false), 500);
             }}
-            className="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white"
+            className="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
           >
             <RefreshCw className="mr-2 h-4 w-4" />
             {t.refresh}
@@ -464,7 +304,7 @@ export default function AdminOrdersPage() {
           
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white"
+            className="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
           >
             <Filter className="mr-2 h-4 w-4" />
             {t.filter}
@@ -474,7 +314,7 @@ export default function AdminOrdersPage() {
       
       {/* Search and Filters */}
       <div className="flex flex-col space-y-4">
-        <div className="flex flex-col space-y-4 md:flex-row md:items-center md:space-x-4 md:space-y-0">
+        <div className="flex flex-col md:flex-row md:items-center md:space-x-4 space-y-4 md:space-y-0">
           <div className="relative flex-1">
             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
               <Search className="h-5 w-5 text-gray-400" />
@@ -482,7 +322,7 @@ export default function AdminOrdersPage() {
             <input
               type="text"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={e => setSearchQuery(e.target.value)}
               placeholder={t.searchPlaceholder}
               className="block w-full rounded-md border border-gray-300 bg-white py-2 pl-10 pr-3 text-sm placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:placeholder-gray-400"
             />
@@ -491,13 +331,12 @@ export default function AdminOrdersPage() {
           <div className="flex space-x-3">
             <select
               value={pageSize}
-              onChange={(e) => setPageSize(Number(e.target.value))}
+              onChange={e => setPageSize(Number(e.target.value))}
               className="rounded-md border border-gray-300 bg-white py-2 pl-3 pr-10 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-white"
             >
-              <option value="5">5</option>
-              <option value="10">10</option>
-              <option value="20">20</option>
-              <option value="50">50</option>
+              {[5, 10, 20, 50].map(size => (
+                <option key={size} value={size}>{size}</option>
+              ))}
             </select>
           </div>
         </div>
@@ -519,7 +358,7 @@ export default function AdminOrdersPage() {
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t.statusFilter}</label>
                 <select
                   value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
+                  onChange={e => setStatusFilter(e.target.value)}
                   className="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 pl-3 pr-10 text-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                 >
                   <option value="all">{t.allStatus}</option>
@@ -543,7 +382,7 @@ export default function AdminOrdersPage() {
                       <input
                         type="date"
                         value={dateRangeFilter.startDate}
-                        onChange={(e) => setDateRangeFilter({...dateRangeFilter, startDate: e.target.value})}
+                        onChange={e => setDateRangeFilter({...dateRangeFilter, startDate: e.target.value})}
                         className="block w-full rounded-md border border-gray-300 bg-white py-2 pl-10 pr-3 text-sm placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                       />
                     </div>
@@ -557,7 +396,7 @@ export default function AdminOrdersPage() {
                       <input
                         type="date"
                         value={dateRangeFilter.endDate}
-                        onChange={(e) => setDateRangeFilter({...dateRangeFilter, endDate: e.target.value})}
+                        onChange={e => setDateRangeFilter({...dateRangeFilter, endDate: e.target.value})}
                         className="block w-full rounded-md border border-gray-300 bg-white py-2 pl-10 pr-3 text-sm placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                       />
                     </div>
@@ -654,7 +493,6 @@ export default function AdminOrdersPage() {
                       </Link>
                       {order.has_warning && (
                         <span className="ml-2 inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800 dark:bg-red-900/30 dark:text-red-400">
-                          <AlertTriangle className="mr-1 h-3 w-3" />
                           {t.warning}
                         </span>
                       )}
@@ -748,16 +586,29 @@ export default function AdminOrdersPage() {
       
       {/* Delete Confirmation Modal */}
       {showDeleteModal && orderToDelete && (
-        <ConfirmDeleteModal
-          title={t.confirmDelete}
-          message={`${t.confirmDeleteMessage} (${orderToDelete.order_number})`}
-          confirmButtonText={t.delete}
-          cancelButtonText={t.cancel}
-          onConfirm={handleDelete}
-          onCancel={() => {
-            setShowDeleteModal(false);
-            setOrderToDelete(null);
-          }}
-        />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800">
+            <div className="mb-4 text-lg font-medium text-gray-900 dark:text-white">{t.confirmDelete}</div>
+            <p className="mb-6 text-gray-500 dark:text-gray-400">{t.confirmDeleteMessage}</p>
+            <div className="flex justify-end space-x-3">
+              <button
+                type="button"
+                onClick={() => setShowDeleteModal(false)}
+                className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+              >
+                {t.cancel}
+              </button>
+              <button
+                type="button"
+                onClick={handleDelete}
+                className="rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+              >
+                {t.delete}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
+  );
+}

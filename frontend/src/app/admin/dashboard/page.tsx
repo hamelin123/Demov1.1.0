@@ -6,7 +6,7 @@ import { useAuth } from '@/components/auth/AuthProvider';
 import Link from 'next/link';
 import { User, Truck, Thermometer, Package, LogOut, Settings, Home } from 'lucide-react';
 
-export default function DashboardPage() {
+export default function AdminDashboard() {
   const router = useRouter();
   const { user, isAuthenticated, logout } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
@@ -15,36 +15,22 @@ export default function DashboardPage() {
   const [theme, setTheme] = useState('light');
   const [language, setLanguage] = useState('th');
 
-  // Auth check
   useEffect(() => {
     setIsLoading(true);
     if (!isAuthenticated && typeof window !== 'undefined') {
       !localStorage.getItem('user') && router.push('/login');
     }
+    
+    // Load theme/language
+    if (typeof window !== 'undefined') {
+      setTheme(localStorage.getItem('theme') || 'light');
+      setLanguage(localStorage.getItem('language') || 'th');
+      document.documentElement.classList.toggle('dark', localStorage.getItem('theme') === 'dark');
+    }
+    
     setIsLoading(false);
   }, [isAuthenticated, router]);
 
-  // Load theme/language
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const storedTheme = localStorage.getItem('theme') || 'light';
-      const storedLang = localStorage.getItem('language') || 'th';
-      setTheme(storedTheme);
-      setLanguage(storedLang);
-      
-      document.documentElement.classList.toggle('dark', storedTheme === 'dark');
-    }
-  }, []);
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
-    );
-  }
-
-  // Translations
   const t = {
     th: {
       dashboard: "แดชบอร์ด", overview: "ภาพรวม", shipments: "การขนส่ง", tracking: "ติดตามสินค้า",
@@ -87,17 +73,30 @@ export default function DashboardPage() {
     document.documentElement.classList.toggle('dark', newTheme === 'dark');
   };
 
+  if (isLoading) {
+    return <div className="flex items-center justify-center min-h-screen">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+    </div>;
+  }
+
+  // Build cards data
+  const cards = [
+    { title: t.activeShipments, icon: <Truck size={24} />, value: mockData.activeShipments, color: 'blue' },
+    { title: t.completedShipments, icon: <Package size={24} />, value: mockData.completedShipments, color: 'green' },
+    { title: t.temperatureAlerts, icon: <Thermometer size={24} />, value: mockData.temperatureAlerts, color: 'red' }
+  ];
+
+  // Navigation tabs
+  const tabs = ['overview', 'shipments', 'tracking', 'profile'];
+
   return (
-    <div className={`min-h-screen bg-gray-50 dark:bg-gray-900`}>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
       <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 fixed w-full z-10">
         <div className="mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex">
-              <button
-                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                className="inline-flex items-center justify-center p-2 rounded-md text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none lg:hidden"
-              >
+              <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="lg:hidden p-2 rounded-md text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
                 {isSidebarOpen ? <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg> : 
                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>}
               </button>
@@ -106,21 +105,19 @@ export default function DashboardPage() {
               </div>
             </div>
             
-            <div className="flex items-center">
-              <button onClick={toggleLanguage} className="p-2 rounded-md text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 mx-1">
+            <div className="flex items-center space-x-2">
+              <button onClick={toggleLanguage} className="p-2 rounded-md text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
                 {language === 'th' ? 'EN' : 'ไทย'}
               </button>
-              <button onClick={toggleTheme} className="p-2 rounded-md text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 mx-1">
+              <button onClick={toggleTheme} className="p-2 rounded-md text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
                 {theme === 'dark' ? '☀️' : '🌙'}
               </button>
-              <button className="p-2 rounded-md text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 mx-1">
+              <button className="p-2 rounded-md text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
                 <Settings size={20} />
               </button>
               <div className="flex items-center space-x-2 ml-4">
-                <div className="flex-shrink-0">
-                  <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white">
-                    {user?.name?.charAt(0) || 'U'}
-                  </div>
+                <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white">
+                  {user?.name?.charAt(0) || 'U'}
                 </div>
                 <div className="hidden md:block">
                   <div className="text-sm font-medium text-gray-700 dark:text-gray-300">{user?.name || 'User'}</div>
@@ -141,10 +138,10 @@ export default function DashboardPage() {
               {t.home}
             </Link>
             
-            {['overview', 'shipments', 'tracking', 'profile'].map(tab => (
+            {tabs.map(tab => (
               <button key={tab} onClick={() => setActiveTab(tab)}
-                className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md w-full ${activeTab === tab 
-                  ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' 
+                className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md w-full ${
+                  activeTab === tab ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' 
                   : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
               >
                 <span className={`mr-3 h-5 w-5 ${activeTab === tab ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'}`}>
@@ -170,7 +167,7 @@ export default function DashboardPage() {
       {/* Main content */}
       <main className="pt-16 lg:pl-64">
         <div className="p-6">
-          {activeTab === 'overview' && (
+          {activeTab === 'overview' ? (
             <div>
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">{t.dashboard}</h1>
               
@@ -182,12 +179,7 @@ export default function DashboardPage() {
               
               {/* Stats Cards */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                {/* Cards data */}
-                {[
-                  { title: t.activeShipments, icon: <Truck size={24} />, value: mockData.activeShipments, color: 'blue' },
-                  { title: t.completedShipments, icon: <Package size={24} />, value: mockData.completedShipments, color: 'green' },
-                  { title: t.temperatureAlerts, icon: <Thermometer size={24} />, value: mockData.temperatureAlerts, color: 'red' }
-                ].map((card, idx) => (
+                {cards.map((card, idx) => (
                   <div key={idx} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700">
                     <div className="flex items-center">
                       <div className={`p-3 rounded-full bg-${card.color}-100 dark:bg-${card.color}-900/30 text-${card.color}-600 dark:text-${card.color}-400 mr-4`}>
@@ -236,10 +228,7 @@ export default function DashboardPage() {
                 </div>
               </div>
             </div>
-          )}
-          
-          {/* Other tabs content would go here */}
-          {activeTab !== 'overview' && (
+          ) : (
             <div className="p-8 text-center">
               <h2 className="text-2xl font-bold mb-4">{t[activeTab]}</h2>
               <p className="text-gray-600 dark:text-gray-400">This section is under development.</p>
