@@ -17,7 +17,8 @@
     "test:watch": "jest --watch",
     "db:init": "ts-node src/config/initializeDatabase.ts",
     "migration:create": "ts-node ./node_modules/.bin/typeorm migration:create",
-    "migration:run": "ts-node ./node_modules/.bin/typeorm migration:run"
+    "migration:run": "ts-node ./node_modules/.bin/typeorm migration:run",
+    "db:migrate": "ts-node src/migrations/runMigration.ts"
   },
   "keywords": [
     "typescript",
