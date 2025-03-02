@@ -49,15 +49,18 @@ export function Navbar() {
           
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-6">
-            <Link href="/services" className="nav-link text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">
-              {t('services', 'navigation')}
-            </Link>
-            <Link href="/tracking" className="nav-link text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">
-              {t('tracking', 'navigation')}
-            </Link>
-            <Link href="/contact" className="nav-link text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">
-              {t('contact', 'navigation')}
-            </Link>
+          <Link href="/about" className="nav-link text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">
+            {language === 'en' ? 'About' : 'เกี่ยวกับเรา'}
+          </Link>
+          <Link href="/services" className="nav-link text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">
+            {t('services', 'navigation')}
+          </Link>
+          <Link href="/tracking" className="nav-link text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">
+            {t('tracking', 'navigation')}
+          </Link>
+          <Link href="/contact" className="nav-link text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">
+            {t('contact', 'navigation')}
+          </Link>
             
             {/* Theme Toggle */}
             <button 
@@ -127,8 +130,15 @@ export function Navbar() {
         
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <div className="md:hidden mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <div className="md:hidden mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
             <div className="flex flex-col space-y-4">
+              <Link 
+                href="/about" 
+                className="nav-link text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
+                onClick={toggleMenu}
+              >
+                {language === 'en' ? 'About' : 'เกี่ยวกับเรา'}
+              </Link>
               <Link 
                 href="/services" 
                 className="nav-link text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"

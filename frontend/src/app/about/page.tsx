@@ -5,8 +5,7 @@ import { useLanguage } from '@/providers/LanguageProvider';
 import { useState, useEffect } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
-import { CheckCircle, Award, TrendingUp, Users, Clock, Globe, Truck, Thermometer } from 'lucide-react';
-import Image from 'next/image';
+import { CheckCircle, Award, TrendingUp, Users, Clock, Globe, Truck, User } from 'lucide-react';
 
 export default function AboutPage() {
   const { language } = useLanguage();
@@ -279,7 +278,7 @@ export default function AboutPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
               <div className="bg-gray-50 dark:bg-gray-800 rounded-lg overflow-hidden text-center group">
                 <div className="h-64 bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-                  <Users className="h-24 w-24 text-gray-400 dark:text-gray-600" />
+                  <User className="h-24 w-24 text-gray-400 dark:text-gray-600" />
                 </div>
                 <div className="p-6">
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Somchai Jaidee</h3>
@@ -288,7 +287,7 @@ export default function AboutPage() {
               </div>
               <div className="bg-gray-50 dark:bg-gray-800 rounded-lg overflow-hidden text-center group">
                 <div className="h-64 bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-                  <Users className="h-24 w-24 text-gray-400 dark:text-gray-600" />
+                  <User className="h-24 w-24 text-gray-400 dark:text-gray-600" />
                 </div>
                 <div className="p-6">
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Wanida Somjai</h3>
@@ -297,7 +296,7 @@ export default function AboutPage() {
               </div>
               <div className="bg-gray-50 dark:bg-gray-800 rounded-lg overflow-hidden text-center group">
                 <div className="h-64 bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-                  <Users className="h-24 w-24 text-gray-400 dark:text-gray-600" />
+                  <User className="h-24 w-24 text-gray-400 dark:text-gray-600" />
                 </div>
                 <div className="p-6">
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Prasit Techthai</h3>
@@ -306,7 +305,7 @@ export default function AboutPage() {
               </div>
               <div className="bg-gray-50 dark:bg-gray-800 rounded-lg overflow-hidden text-center group">
                 <div className="h-64 bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-                  <Users className="h-24 w-24 text-gray-400 dark:text-gray-600" />
+                  <User className="h-24 w-24 text-gray-400 dark:text-gray-600" />
                 </div>
                 <div className="p-6">
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Naree Saleman</h3>
@@ -339,13 +338,23 @@ export default function AboutPage() {
               </div>
               <div className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-sm flex items-center space-x-4">
                 <div className="bg-yellow-100 dark:bg-yellow-900/50 p-3 rounded-full">
-                  <Shield className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
+                    <div className="h-6 w-6 text-yellow-600 dark:text-yellow-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                    </svg>
+                    </div>
                 </div>
                 <span className="text-gray-800 dark:text-gray-200">{t.iso45001}</span>
-              </div>
+                </div>
               <div className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-sm flex items-center space-x-4">
                 <div className="bg-purple-100 dark:bg-purple-900/50 p-3 rounded-full">
-                  <Thermometer className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                  <div className="h-6 w-6 text-purple-600 dark:text-purple-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"></path>
+                      <path d="M12 12v5"></path>
+                      <circle cx="12" cy="9" r="1"></circle>
+                    </svg>
+                  </div>
                 </div>
                 <span className="text-gray-800 dark:text-gray-200">{t.gdp}</span>
               </div>
