@@ -45,7 +45,38 @@ export default function DashboardPage() {
       }
     }
   }, []);
-
+  
+    useEffect(() => {
+      let isMounted = true;
+      
+      const fetchOrders = async () => {
+        if (!isAuthenticated) return;
+        
+        try {
+          setIsLoading(true);
+          // const response = await api.getUserOrders();
+          // if (isMounted) setOrders(response.orders);
+          
+          // จำลองการดึงข้อมูล
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          // ตัวอย่างการตั้งค่าข้อมูลจำลอง
+          if (isMounted) {
+            // ตั้งค่าข้อมูลจากการเรียก API
+          }
+        } catch (error) {
+          console.error('Error fetching orders:', error);
+        } finally {
+          if (isMounted) setIsLoading(false);
+        }
+      };
+      
+      fetchOrders();
+      
+      return () => {
+        isMounted = false;
+      };
+    }, [isAuthenticated]);
   // ถ้ากำลังโหลด แสดงข้อความกำลังโหลด
   if (isLoading) {
     return (

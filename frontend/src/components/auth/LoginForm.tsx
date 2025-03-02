@@ -6,10 +6,12 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Mail, Lock, AlertCircle } from 'lucide-react';
 import { useLanguage } from '@/providers/LanguageProvider';
+import { useAuth } from '@/components/auth/AuthProvider';
 
 export function LoginForm() {
   const router = useRouter();
   const { language } = useLanguage();
+  const { login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({
@@ -29,6 +31,7 @@ export function LoginForm() {
       register: 'ลงทะเบียน',
       invalidCredentials: 'อีเมลหรือรหัสผ่านไม่ถูกต้อง',
       emailRequired: 'กรุณากรอกอีเมล',
+      emailInvalid: 'รูปแบบอีเมลไม่ถูกต้อง',
       passwordRequired: 'กรุณากรอกรหัสผ่าน',
       loginFailed: 'การเข้าสู่ระบบล้มเหลว โปรดลองอีกครั้ง'
     },
@@ -42,12 +45,18 @@ export function LoginForm() {
       register: 'Register',
       invalidCredentials: 'Invalid email or password',
       emailRequired: 'Email is required',
+      emailInvalid: 'Invalid email format',
       passwordRequired: 'Password is required',
       loginFailed: 'Login failed. Please try again.'
     }
   };
 
   const t = translations[language] || translations.en;
+
+  const validateEmail = (email: string) => {
+    const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return re.test(String(email).toLowerCase());
+  };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -68,6 +77,12 @@ export function LoginForm() {
       setError(t.emailRequired);
       return;
     }
+    
+    if (!validateEmail(formData.email)) {
+      setError(t.emailInvalid);
+      return;
+    }
+    
     if (!formData.password) {
       setError(t.passwordRequired);
       return;
@@ -93,14 +108,14 @@ export function LoginForm() {
         throw new Error(data.message || t.invalidCredentials);
       }
       
-      // Save user data and token
-      localStorage.setItem('isLoggedIn', 'true');
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      // Save user data and token using the AuthProvider
+      login(data.user, data.token);
       
       // Redirect to dashboard or home based on user role
       if (data.user.role === 'admin') {
         router.push('/admin/dashboard');
+      } else if (data.user.role === 'staff') {
+        router.push('/staff/dashboard');
       } else {
         router.push('/dashboard');
       }

@@ -178,131 +178,130 @@ export default function TemperaturePage() {
               }`}
             >
               <div className="p-4">
-              // src/app/staff/temperature/page.tsx (ต่อ)
-              <div className="flex justify-between">
-                <h3 className="text-lg font-medium text-blue-600 dark:text-blue-400">
-                  {order.orderNumber}
-                </h3>
-                {order.hasAlert && (
-                  <AlertCircle className="text-red-500" size={20} />
-                )}
+                <div className="flex justify-between">
+                  <h3 className="text-lg font-medium text-blue-600 dark:text-blue-400">
+                    {order.orderNumber}
+                  </h3>
+                  {order.hasAlert && (
+                    <AlertCircle className="text-red-500" size={20} />
+                  )}
+                </div>
+                
+                <div className="mt-2">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">สถานะ: {order.status}</p>
+                  <div className="mt-2 flex items-center">
+                    <ThermometerSnowflake className="text-blue-500 mr-2" size={18} />
+                    <span className={`text-lg font-medium ${
+                      (order.currentTemp > order.maxTemp || order.currentTemp < order.minTemp)
+                        ? 'text-red-600 dark:text-red-400'
+                        : 'text-gray-900 dark:text-gray-100'
+                    }`}>
+                      {order.currentTemp}°C
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    ช่วงที่กำหนด: {order.minTemp}°C - {order.maxTemp}°C
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    อัปเดตล่าสุด: {order.lastUpdated}
+                  </p>
+                </div>
               </div>
               
-              <div className="mt-2">
-                <p className="text-sm text-gray-600 dark:text-gray-400">สถานะ: {order.status}</p>
-                <div className="mt-2 flex items-center">
-                  <ThermometerSnowflake className="text-blue-500 mr-2" size={18} />
-                  <span className={`text-lg font-medium ${
-                    (order.currentTemp > order.maxTemp || order.currentTemp < order.minTemp)
-                      ? 'text-red-600 dark:text-red-400'
-                      : 'text-gray-900 dark:text-gray-100'
-                  }`}>
-                    {order.currentTemp}°C
-                  </span>
-                </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  ช่วงที่กำหนด: {order.minTemp}°C - {order.maxTemp}°C
-                </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  อัปเดตล่าสุด: {order.lastUpdated}
-                </p>
+              <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700">
+                <button
+                  onClick={() => handleRecordTemperature(order)}
+                  className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  บันทึกอุณหภูมิใหม่
+                </button>
               </div>
             </div>
-            
-            <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700">
-              <button
-                onClick={() => handleRecordTemperature(order)}
-                className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                บันทึกอุณหภูมิใหม่
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-    )}
-    
-    {/* Modal สำหรับบันทึกอุณหภูมิ */}
-    {isFormOpen && selectedOrder && (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full">
-          <h2 className="text-xl font-bold mb-4">บันทึกอุณหภูมิ</h2>
-          
-          <div className="mb-4">
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">หมายเลขพัสดุ</p>
-            <p className="font-medium">{selectedOrder.orderNumber}</p>
-          </div>
-          
-          <div className="mb-4">
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">ช่วงอุณหภูมิที่กำหนด</p>
-            <p className="font-medium">{selectedOrder.minTemp}°C - {selectedOrder.maxTemp}°C</p>
-          </div>
-          
-          <form onSubmit={handleSubmit}>
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                อุณหภูมิ (°C) <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="number"
-                step="0.1"
-                name="temperature"
-                value={newTemperature.temperature}
-                onChange={handleInputChange}
-                required
-                className="w-full p-2 border rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-              />
-            </div>
-            
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                ความชื้น (%)
-              </label>
-              <input
-                type="number"
-                step="0.1"
-                min="0"
-                max="100"
-                name="humidity"
-                value={newTemperature.humidity}
-                onChange={handleInputChange}
-                className="w-full p-2 border rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-              />
-            </div>
-            
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                บันทึกเพิ่มเติม
-              </label>
-              <textarea
-                name="notes"
-                value={newTemperature.notes}
-                onChange={handleInputChange}
-                rows={3}
-                className="w-full p-2 border rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                placeholder="บันทึกอื่นๆ เช่น สภาพบรรจุภัณฑ์ หรือความผิดปกติที่พบ"
-              />
-            </div>
-            
-            <div className="flex justify-end mt-6">
-              <button
-                type="button"
-                onClick={() => setIsFormOpen(false)}
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg mr-2 dark:border-gray-600 dark:text-gray-300"
-              >
-                ยกเลิก
-              </button>
-              <button
-                type="submit"
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg"
-              >
-                บันทึก
-              </button>
-            </div>
-          </form>
+          ))}
         </div>
-      </div>
-    )}
-  </StaffLayout>
-);
+      )}
+      
+      {/* Modal สำหรับบันทึกอุณหภูมิ */}
+      {isFormOpen && selectedOrder && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full">
+            <h2 className="text-xl font-bold mb-4">บันทึกอุณหภูมิ</h2>
+            
+            <div className="mb-4">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">หมายเลขพัสดุ</p>
+              <p className="font-medium">{selectedOrder.orderNumber}</p>
+            </div>
+            
+            <div className="mb-4">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">ช่วงอุณหภูมิที่กำหนด</p>
+              <p className="font-medium">{selectedOrder.minTemp}°C - {selectedOrder.maxTemp}°C</p>
+            </div>
+            
+            <form onSubmit={handleSubmit}>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  อุณหภูมิ (°C) <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  step="0.1"
+                  name="temperature"
+                  value={newTemperature.temperature}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full p-2 border rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                />
+              </div>
+              
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  ความชื้น (%)
+                </label>
+                <input
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  max="100"
+                  name="humidity"
+                  value={newTemperature.humidity}
+                  onChange={handleInputChange}
+                  className="w-full p-2 border rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                />
+              </div>
+              
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  บันทึกเพิ่มเติม
+                </label>
+                <textarea
+                  name="notes"
+                  value={newTemperature.notes}
+                  onChange={handleInputChange}
+                  rows={3}
+                  className="w-full p-2 border rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                  placeholder="บันทึกอื่นๆ เช่น สภาพบรรจุภัณฑ์ หรือความผิดปกติที่พบ"
+                />
+              </div>
+              
+              <div className="flex justify-end mt-6">
+                <button
+                  type="button"
+                  onClick={() => setIsFormOpen(false)}
+                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg mr-2 dark:border-gray-600 dark:text-gray-300"
+                >
+                  ยกเลิก
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg"
+                >
+                  บันทึก
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </StaffLayout>
+  );
 }

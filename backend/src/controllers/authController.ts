@@ -1,8 +1,18 @@
 import { Request, Response } from 'express';
+import { rateLimit } from 'express-rate-limit';
 import jwt from 'jsonwebtoken';
 import { UserModel } from '../models/User';
 import { validateRegisterInput, validateLoginInput } from '../utils/validators';
 
+
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 นาที
+  max: 5, // จำกัด 5 ครั้งต่อ IP
+  message: 'Too many login attempts, please try again later',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use('/api/auth/login', loginLimiter);
 /**
  * สมัครสมาชิกใหม่
  */
@@ -74,6 +84,12 @@ export const login = async (req: Request, res: Response) => {
     if (error) {
       res.status(400).json({ message: error.details[0].message });
       return;
+      await UserModel.logLogin(
+        user.id,
+        true, // สำเร็จ
+        req.ip,
+        req.headers['user-agent']
+      );
     }
 
     // ตรวจสอบข้อมูลการเข้าสู่ระบบ
