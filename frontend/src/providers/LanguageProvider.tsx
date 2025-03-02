@@ -11,7 +11,7 @@ interface LanguageContextType {
   t: (key: string, section?: string) => string;
 }
 
-// โหลดไฟล์ภาษา
+// Load translations
 const translations = {
   en: {
     navigation: {
@@ -26,7 +26,32 @@ const translations = {
       getStarted: "Get Started",
       learnMore: "Learn More"
     },
-    // เพิ่มคำแปลอื่นๆ ตามที่ต้องการ
+    features: {
+      temperatureControl: {
+        title: "Temperature Control",
+        description: "Precise Temperature Monitoring Throughout Transit"
+      },
+      tracking: {
+        title: "Real-Time Tracking",
+        description: "GPS Tracking for Complete Shipment Visibility"
+      },
+      quality: {
+        title: "Quality Assured", 
+        description: "Strict Quality Controls for Product Integrity"
+      }
+    },
+    professionalServices: {
+      title: "Professional Services",
+      subtitle: "Temperature-Controlled Logistics Solutions for Your Valuable Cargo",
+      temperatureControl: "Temperature Control",
+      realTimeTracking: "Real-Time Tracking",
+      qualityAssurance: "Quality Assurance"
+    },
+    contact: {
+      title: "Contact Us",
+      address: "123 Cold Storage Building\nDigital Park, Sukhumvit Road\nBangkok 10110, Thailand"
+    },
+    // Add more translations as needed
   },
   th: {
     navigation: {
@@ -41,7 +66,32 @@ const translations = {
       getStarted: "เริ่มต้นใช้งาน",
       learnMore: "เรียนรู้เพิ่มเติม"
     },
-    // เพิ่มคำแปลอื่นๆ ตามที่ต้องการ
+    features: {
+      temperatureControl: {
+        title: "ควบคุมอุณหภูมิ",
+        description: "การตรวจสอบอุณหภูมิอย่างแม่นยำตลอดการขนส่ง"
+      },
+      tracking: {
+        title: "การติดตามแบบเรียลไทม์",
+        description: "การติดตามด้วย GPS เพื่อการเห็นสถานะการจัดส่งอย่างสมบูรณ์"
+      },
+      quality: {
+        title: "รับประกันคุณภาพ", 
+        description: "การควบคุมคุณภาพอย่างเข้มงวดเพื่อความสมบูรณ์ของสินค้า"
+      }
+    },
+    professionalServices: {
+      title: "บริการมืออาชีพ",
+      subtitle: "โซลูชันโลจิสติกส์ควบคุมอุณหภูมิสำหรับสินค้ามีค่าของคุณ",
+      temperatureControl: "ควบคุมอุณหภูมิ",
+      realTimeTracking: "การติดตามแบบเรียลไทม์",
+      qualityAssurance: "รับประกันคุณภาพ"
+    },
+    contact: {
+      title: "ติดต่อเรา",
+      address: "123 อาคารเก็บสินค้าเย็น\nปาร์คดิจิทัล ถนนสุขุมวิท\nกรุงเทพฯ 10110 ประเทศไทย"
+    },
+    // Add more translations as needed
   }
 };
 
@@ -67,14 +117,12 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-// src/providers/LanguageProvider.tsx
-// เพิ่มเติมในฟังก์ชัน setLanguage
-const setLanguage = (newLanguage: Language) => {
+  const setLanguage = (newLanguage: Language) => {
     setLanguageState(newLanguage);
     if (typeof window !== 'undefined') {
       localStorage.setItem('language', newLanguage);
-      // ส่งเหตุการณ์แจ้งเตือนการเปลี่ยนภาษา
-      window.dispatchEvent(new Event('languageChange')); // เพิ่มบรรทัดนี้
+      // Send language change event
+      window.dispatchEvent(new Event('languageChange'));
       console.log('Language changed to:', newLanguage);
     }
   };

@@ -1,3 +1,4 @@
+// src/providers/ThemeProvider.tsx
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
@@ -42,6 +43,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     } else {
       document.documentElement.classList.remove('dark');
     }
+    
+    // Send theme change event
+    window.dispatchEvent(new Event('themeChange'));
   };
 
   if (!mounted) {
