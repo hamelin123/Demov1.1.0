@@ -1,3 +1,4 @@
+// src/providers/ThemeProvider.tsx
 'use client';
 
 import React, {createContext, useContext, useState, useEffect} from 'react';
@@ -29,7 +30,19 @@ export function ThemeProvider({children}: {children: React.ReactNode}) {
     const newTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
     localStorage.setItem('theme', newTheme);
+<<<<<<< HEAD
     document.documentElement.classList[newTheme === 'dark' ? 'add' : 'remove']('dark');
+=======
+    
+    if (newTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    
+    // Send theme change event
+    window.dispatchEvent(new Event('themeChange'));
+>>>>>>> demo
   };
 
   return mounted ? (

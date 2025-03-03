@@ -1,5 +1,6 @@
 import winston from 'winston';
 
+<<<<<<< HEAD
 // Create optimized logger
 const logger = winston.createLogger({
   level: process.env.LOG_LEVEL || 'info',
@@ -22,3 +23,21 @@ const logger = winston.createLogger({
 });
 
 export default logger;
+=======
+/**
+ * บันทึกรายละเอียดของ request ที่เข้ามา
+ */
+export const logger = (req: Request, res: Response, next: NextFunction) => {
+  const start = Date.now();
+  
+  // บันทึกข้อมูลเมื่อส่ง response
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    console.log(
+      `[${new Date().toISOString()}] ${req.method} ${req.url} ${res.statusCode} ${duration}ms`
+    );
+  });
+  
+  next();
+};
+>>>>>>> demo

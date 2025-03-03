@@ -3,6 +3,8 @@ import jwt from 'jsonwebtoken';
 import { UserModel } from '../models/User';
 import { validateRegisterInput, validateLoginInput } from '../utils/validators';
 
+// ลบการนำเข้า rateLimit และลบโค้ดการกำหนด loginLimiter ออก
+
 /**
  * สมัครสมาชิกใหม่
  */
@@ -82,6 +84,14 @@ export const login = async (req: Request, res: Response) => {
       res.status(401).json({ message: 'Invalid email or password' });
       return;
     }
+
+    // บันทึกการล็อกอิน
+    await UserModel.logLogin(
+      user.id,
+      true, // สำเร็จ
+      req.ip,
+      req.headers['user-agent']
+    );
 
     // สร้าง token
     const token = jwt.sign(

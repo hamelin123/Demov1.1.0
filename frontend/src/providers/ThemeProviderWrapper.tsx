@@ -1,9 +1,10 @@
 // src/providers/ThemeProviderWrapper.tsx
 'use client';
 
-import { ThemeProvider } from 'next-themes';
 import React from 'react';
+import { ThemeProvider } from './ThemeProvider';
 import { LanguageProvider } from './LanguageProvider';
+import { AuthProvider } from '@/components/auth/AuthProvider';
 
 export default function ThemeProviderWrapper({
   children,
@@ -11,9 +12,11 @@ export default function ThemeProviderWrapper({
   children: React.ReactNode;
 }) {
   return (
-    <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+    <ThemeProvider>
       <LanguageProvider>
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </LanguageProvider>
     </ThemeProvider>
   );
