@@ -1,15 +1,3 @@
-// src/app/robots.ts
-export default function robots() {
-    return {
-      rules: {
-        userAgent: '*',
-        allow: '/',
-        disallow: '/private/',
-      },
-      sitemap: 'https://yourdomain.com/sitemap.xml',
-    };
-  }
-  
   // src/app/sitemap.ts
   export default function sitemap() {
     return [

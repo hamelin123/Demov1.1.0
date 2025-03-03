@@ -37,7 +37,7 @@ const AuthContext = createContext<AuthContextType>({
 export const useAuth = () => useContext(AuthContext);
 
 // Provider Component
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
@@ -54,7 +54,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       if (storedUser && token && isLoggedIn) {
         try {
-          setUser(JSON.parse(storedUser));
+          const parsedUser = JSON.parse(storedUser);
+          setUser(parsedUser);
+          
+          // ตรวจสอบความถูกต้องของ token เมื่อโหลดแอพ
+          checkTokenValidity().catch(() => {
+            // กรณี token ไม่ถูกต้อง ให้ล้างข้อมูลออก
+            logout(false); // false เพื่อไม่ให้ redirect
+          });
         } catch (error) {
           console.error('Error parsing user data:', error);
           localStorage.removeItem('user');
@@ -83,8 +90,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       if (!response.ok) {
         // Token ไม่ถูกต้องหรือหมดอายุ
-        logout();
+        logout(false); // ไม่ redirect เพื่อป้องกัน loop
         return false;
+      }
+      
+      // อัปเดตข้อมูลผู้ใช้จาก API
+      const userData = await response.json();
+      if (userData && userData.user) {
+        setUser(userData.user);
+        localStorage.setItem('user', JSON.stringify(userData.user));
       }
       
       return true;
@@ -100,15 +114,27 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     localStorage.setItem('user', JSON.stringify(userData));
     localStorage.setItem('token', token);
     localStorage.setItem('isLoggedIn', 'true');
+    
+    // ตรวจสอบบทบาทและ redirect ไปยังหน้าที่เหมาะสม
+    if (userData.role === 'admin') {
+      router.push('/admin/dashboard');
+    } else if (userData.role === 'staff') {
+      router.push('/staff/dashboard');
+    } else {
+      router.push('/dashboard');
+    }
   };
 
   // ฟังก์ชันล็อกเอาท์
-  const logout = () => {
+  const logout = (shouldRedirect = true) => {
     setUser(null);
     localStorage.removeItem('user');
     localStorage.removeItem('token');
     localStorage.removeItem('isLoggedIn');
-    router.push('/login');
+    
+    if (shouldRedirect) {
+      router.push('/');
+    }
   };
 
   // ตรวจสอบ token ทุก 5 นาที
@@ -138,4 +164,4 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       {children}
     </AuthContext.Provider>
   );
-};
+}

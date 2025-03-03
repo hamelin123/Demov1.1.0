@@ -1,11 +1,14 @@
-// src/app/staff/temperature/page.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
-import StaffLayout from '@/components/layouts/StaffLayout';
-import { Search, ThermometerSnowflake, TrendingUp, AlertCircle } from 'lucide-react';
+import { useAuth } from '@/components/auth/AuthProvider';
+import { useLanguage } from '@/providers/LanguageProvider';
+import { Search, ThermometerSnowflake, AlertCircle } from 'lucide-react';
 
-export default function TemperaturePage() {
+export default function StaffTemperaturePage() {
+  const { user, isAuthenticated, isLoading } = useAuth();
+  const { language } = useLanguage();
+  const [mounted, setMounted] = useState(false);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -18,15 +21,16 @@ export default function TemperaturePage() {
   });
 
   useEffect(() => {
-    // ในการใช้งานจริง ควรเรียกจาก API
+    setMounted(true);
+    
+    // จำลองการดึงข้อมูลจาก API
     const fetchOrders = async () => {
       try {
-        // const response = await fetch('/api/orders/active');
-        // const data = await response.json();
-        // setOrders(data);
+        // จำลองความล่าช้าของเครือข่าย
+        await new Promise(resolve => setTimeout(resolve, 1000));
         
         // ข้อมูลจำลอง
-        setOrders([
+        const mockOrders = [
           { 
             id: '1', 
             orderNumber: 'CC-20250301-1234', 
@@ -57,7 +61,9 @@ export default function TemperaturePage() {
             lastUpdated: '2025-03-01 14:15',
             hasAlert: true
           },
-        ]);
+        ];
+        
+        setOrders(mockOrders);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching orders:', error);
@@ -67,6 +73,27 @@ export default function TemperaturePage() {
     
     fetchOrders();
   }, []);
+
+  // ถ้ายังโหลดไม่เสร็จ
+  if (!mounted || isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
+      </div>
+    );
+  }
+
+  // ถ้ายังไม่ได้เข้าสู่ระบบ
+  if (!isAuthenticated) {
+    window.location.href = '/auth/login';
+    return null;
+  }
+
+  // ถ้าไม่ใช่ staff หรือ admin
+  if (user?.role !== 'staff' && user?.role !== 'admin') {
+    window.location.href = '/dashboard';
+    return null;
+  }
 
   const handleRecordTemperature = (order) => {
     setSelectedOrder(order);
@@ -92,17 +119,7 @@ export default function TemperaturePage() {
       // จำลองการบันทึกข้อมูล
       console.log('Recording temperature for order:', selectedOrder.orderNumber, newTemperature);
       
-      // ในสถานการณ์จริง ส่งข้อมูลไปยัง API
-      // await fetch('/api/temperature/log', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({
-      //     orderId: selectedOrder.id,
-      //     ...newTemperature,
-      //     timestamp: new Date().toISOString()
-      //   })
-      // });
-      
+      // จำลองความล่าช้าของเครือข่าย
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       // รีเซ็ตฟอร์ม
@@ -113,9 +130,6 @@ export default function TemperaturePage() {
       });
       
       setIsFormOpen(false);
-      
-      // ในการใช้งานจริง ดึงข้อมูลใหม่หลังบันทึก
-      // fetchOrders();
       
       // อัปเดตข้อมูลบนหน้าจอ (จำลอง)
       setOrders(prevOrders => 
@@ -142,22 +156,27 @@ export default function TemperaturePage() {
     }
   };
 
+  // กรองรายการตามการค้นหา
   const filteredOrders = orders.filter(order => 
     order.orderNumber.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
-    <StaffLayout>
+    <div className="p-6">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold">บันทึกอุณหภูมิ</h1>
-        <p className="text-gray-600 dark:text-gray-400">บันทึกอุณหภูมิสำหรับสินค้าที่อยู่ระหว่างการขนส่ง</p>
+        <h1 className="text-2xl font-bold">
+          {language === 'en' ? 'Temperature Monitoring' : 'บันทึกอุณหภูมิ'}
+        </h1>
+        <p className="text-gray-600 dark:text-gray-400">
+          {language === 'en' ? 'Record temperatures for active shipments' : 'บันทึกอุณหภูมิสำหรับสินค้าที่อยู่ระหว่างการขนส่ง'}
+        </p>
       </div>
 
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow mb-6 p-4">
         <div className="relative">
           <input
             type="text"
-            placeholder="ค้นหาด้วยหมายเลขพัสดุ"
+            placeholder={language === 'en' ? 'Search by order number' : 'ค้นหาด้วยหมายเลขพัสดุ'}
             className="w-full p-2 pl-10 border rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
             value={searchQuery}
             onChange={handleSearch}
@@ -167,7 +186,12 @@ export default function TemperaturePage() {
       </div>
 
       {loading ? (
-        <div className="text-center py-8">กำลังโหลด...</div>
+        <div className="text-center py-8">
+          <div className="h-10 w-10 mx-auto border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">
+            {language === 'en' ? 'Loading...' : 'กำลังโหลด...'}
+          </p>
+        </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredOrders.map((order) => (
@@ -188,7 +212,9 @@ export default function TemperaturePage() {
                 </div>
                 
                 <div className="mt-2">
-                  <p className="text-sm text-gray-600 dark:text-gray-400">สถานะ: {order.status}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    {language === 'en' ? 'Status:' : 'สถานะ:'} {order.status}
+                  </p>
                   <div className="mt-2 flex items-center">
                     <ThermometerSnowflake className="text-blue-500 mr-2" size={18} />
                     <span className={`text-lg font-medium ${
@@ -200,10 +226,10 @@ export default function TemperaturePage() {
                     </span>
                   </div>
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    ช่วงที่กำหนด: {order.minTemp}°C - {order.maxTemp}°C
+                    {language === 'en' ? 'Required range:' : 'ช่วงที่กำหนด:'} {order.minTemp}°C - {order.maxTemp}°C
                   </p>
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    อัปเดตล่าสุด: {order.lastUpdated}
+                    {language === 'en' ? 'Last updated:' : 'อัปเดตล่าสุด:'} {order.lastUpdated}
                   </p>
                 </div>
               </div>
@@ -213,7 +239,7 @@ export default function TemperaturePage() {
                   onClick={() => handleRecordTemperature(order)}
                   className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 >
-                  บันทึกอุณหภูมิใหม่
+                  {language === 'en' ? 'Record New Temperature' : 'บันทึกอุณหภูมิใหม่'}
                 </button>
               </div>
             </div>
@@ -225,22 +251,28 @@ export default function TemperaturePage() {
       {isFormOpen && selectedOrder && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full">
-            <h2 className="text-xl font-bold mb-4">บันทึกอุณหภูมิ</h2>
+            <h2 className="text-xl font-bold mb-4">
+              {language === 'en' ? 'Record Temperature' : 'บันทึกอุณหภูมิ'}
+            </h2>
             
             <div className="mb-4">
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">หมายเลขพัสดุ</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+                {language === 'en' ? 'Order Number:' : 'หมายเลขพัสดุ:'}
+              </p>
               <p className="font-medium">{selectedOrder.orderNumber}</p>
             </div>
             
             <div className="mb-4">
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">ช่วงอุณหภูมิที่กำหนด</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+                {language === 'en' ? 'Temperature Range:' : 'ช่วงอุณหภูมิที่กำหนด:'}
+              </p>
               <p className="font-medium">{selectedOrder.minTemp}°C - {selectedOrder.maxTemp}°C</p>
             </div>
             
             <form onSubmit={handleSubmit}>
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  อุณหภูมิ (°C) <span className="text-red-500">*</span>
+                  {language === 'en' ? 'Temperature (°C):' : 'อุณหภูมิ (°C):'} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="number"
@@ -255,7 +287,7 @@ export default function TemperaturePage() {
               
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  ความชื้น (%)
+                  {language === 'en' ? 'Humidity (%)' : 'ความชื้น (%)'}
                 </label>
                 <input
                   type="number"
@@ -271,7 +303,7 @@ export default function TemperaturePage() {
               
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  บันทึกเพิ่มเติม
+                  {language === 'en' ? 'Notes:' : 'บันทึกเพิ่มเติม:'}
                 </label>
                 <textarea
                   name="notes"
@@ -279,7 +311,10 @@ export default function TemperaturePage() {
                   onChange={handleInputChange}
                   rows={3}
                   className="w-full p-2 border rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                  placeholder="บันทึกอื่นๆ เช่น สภาพบรรจุภัณฑ์ หรือความผิดปกติที่พบ"
+                  placeholder={language === 'en' 
+                    ? 'Any observations or issues...' 
+                    : 'บันทึกอื่นๆ เช่น สภาพบรรจุภัณฑ์ หรือความผิดปกติที่พบ...'
+                  }
                 />
               </div>
               
@@ -289,19 +324,19 @@ export default function TemperaturePage() {
                   onClick={() => setIsFormOpen(false)}
                   className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg mr-2 dark:border-gray-600 dark:text-gray-300"
                 >
-                  ยกเลิก
+                  {language === 'en' ? 'Cancel' : 'ยกเลิก'}
                 </button>
                 <button
                   type="submit"
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg"
                 >
-                  บันทึก
+                  {language === 'en' ? 'Save' : 'บันทึก'}
                 </button>
               </div>
             </form>
           </div>
         </div>
       )}
-    </StaffLayout>
+    </div>
   );
 }

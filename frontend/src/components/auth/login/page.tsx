@@ -1,4 +1,3 @@
-// src/app/auth/login/page.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -12,11 +11,11 @@ export default function LoginPage() {
   const { language } = useLanguage();
   const [mounted, setMounted] = useState(false);
   
-  // ตรวจสอบสถานะการล็อกอินเมื่อโหลดหน้า
+  // Check login status when loading the page
   useEffect(() => {
     setMounted(true);
     
-    // ถ้าล็อกอินแล้ว ให้ redirect ไปหน้าแดชบอร์ด
+    // If already logged in, redirect to dashboard
     const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
     const userData = localStorage.getItem('user');
     
@@ -25,11 +24,13 @@ export default function LoginPage() {
         const user = JSON.parse(userData);
         if (user.role === 'admin') {
           router.push('/admin/dashboard');
+        } else if (user.role === 'staff') {
+          router.push('/staff/dashboard');
         } else {
           router.push('/dashboard');
         }
       } catch (error) {
-        // กรณีข้อมูลผู้ใช้ไม่ถูกต้อง ให้ลบออกจาก localStorage
+        // If user data is invalid, remove from localStorage
         localStorage.removeItem('isLoggedIn');
         localStorage.removeItem('user');
         localStorage.removeItem('token');
@@ -52,7 +53,7 @@ export default function LoginPage() {
 
   const t = translations[language] || translations.en;
 
-  // ถ้ายังไม่โหลดเสร็จ หรือกำลัง redirect ให้แสดง loading
+  // If not loaded yet or redirecting, show loading
   if (!mounted) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
@@ -81,7 +82,5 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
-    
-      
   );
 }

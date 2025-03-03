@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import routes from './routes';
 import { initializeDatabase } from './config/database';
 import { errorHandler } from './middleware/error';
+import { rateLimit } from 'express-rate-limit';
 
 dotenv.config();
 
@@ -38,4 +39,13 @@ initializeDatabase()
   .then(() => console.log('Database initialized successfully'))
   .catch(err => console.error('Error initializing database:', err));
 
+  const loginLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 นาที
+    max: 5, // จำกัด 5 ครั้งต่อ IP
+    message: 'Too many login attempts, please try again later',
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+
+  app.use('/api/auth/login', loginLimiter);
 export default app;
