@@ -161,13 +161,14 @@ export function RegisterForm() {
       // ลบเครื่องหมายพิเศษ
       companyValue = companyValue.replace(/[^\w\s]/gi, '');
 
+      // Prepare data for API
       const userData = {
-        username: formData.email.split('@')[0], 
+        username: formData.email.split('@')[0],
         email: formData.email,
         password: formData.password,
         full_name: formData.name,
         phone_number: formData.phone,
-        address: formData.company ? `Company: ${formData.company}` : ''
+        company: formData.company  // เปลี่ยนจาก organization เป็น company
       };
       
       // Send to API

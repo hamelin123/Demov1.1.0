@@ -10,9 +10,9 @@ export interface User {
   password: string;
   full_name: string;
   role: string;
-  status: string;
   phone_number?: string;
   address?: string;
+  company?: string;  // เพิ่ม company
   created_at: Date;
   updated_at: Date;
 }
@@ -29,10 +29,10 @@ export class UserModel {
       const password = userData.password.startsWith('$2b$') ? 
         userData.password : 
         await bcrypt.hash(userData.password, 10);
-
+  
       const result = await this.pool.query(
         `INSERT INTO users 
-        (id, username, email, password, full_name, role, status, phone_number, address) 
+        (id, username, email, password, full_name, role, phone_number, address, company) 
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
         RETURNING *`,
         [
@@ -42,12 +42,12 @@ export class UserModel {
           password,
           userData.full_name,
           userData.role || 'user',
-          userData.status || 'active',
           userData.phone_number || null,
-          userData.address || null
+          userData.address || null,
+          userData.company || null  // เพิ่มพารามิเตอร์ company
         ]
       );
-
+  
       return result.rows[0];
     } catch (error) {
       console.error('Error creating user:', error);
@@ -284,9 +284,9 @@ export class UserModel {
       }
 
       // ตรวจสอบว่าผู้ใช้อยู่ในสถานะ active
-      if (user.status === 'inactive') {
-        return null;
-      }
+      // if (user.status === 'inactive') {
+      //   return null;
+      // }
 
       const isPasswordValid = await bcrypt.compare(password, user.password);
 

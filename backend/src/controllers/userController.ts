@@ -58,7 +58,8 @@ export const updateUserProfile = async (req: Request, res: Response) => {
     const updatedUser = await UserModel.update(req.user.id, {
       full_name: value.full_name,
       phone_number: value.phone_number,
-      address: value.address
+      address: value.address,
+      company: value.company
     });
 
     if (!updatedUser) {
@@ -334,8 +335,10 @@ export const updateUser = async (req: Request, res: Response) => {
 };
 
 /**
- * เปลี่ยนสถานะผู้ใช้ (active/inactive)
+ * เปลี่ยนสถานะการใช้งานของผู้ใช้ (active/inactive)
+ * หมายเหตุ: ฟังก์ชันนี้ถูกคอมเมนต์เนื่องจากไม่มีคอลัมน์ status ในตาราง users
  */
+/* 
 export const updateUserStatus = async (req: Request, res: Response) => {
   try {
     // ตรวจสอบสิทธิ์การเข้าถึง
@@ -345,10 +348,10 @@ export const updateUserStatus = async (req: Request, res: Response) => {
     }
 
     const { id } = req.params;
-    const { status } = req.body;
+    const { active } = req.body; // เปลี่ยนจาก status เป็น active หรือฟิลด์อื่นที่มีอยู่จริง
     
-    if (!status || !['active', 'inactive'].includes(status)) {
-      res.status(400).json({ message: 'Invalid status. Must be "active" or "inactive"' });
+    if (active === undefined) {
+      res.status(400).json({ message: 'Active status is required' });
       return;
     }
 
@@ -366,7 +369,7 @@ export const updateUserStatus = async (req: Request, res: Response) => {
     }
 
     // อัปเดตสถานะผู้ใช้
-    const updatedUser = await UserModel.update(id, { status });
+    const updatedUser = await UserModel.update(id, { active });
 
     // ไม่ส่งข้อมูลรหัสผ่านกลับไป
     const { password, ...userWithoutPassword } = updatedUser;
@@ -380,6 +383,7 @@ export const updateUserStatus = async (req: Request, res: Response) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+*/
 
 /**
  * ลบผู้ใช้ (สำหรับ admin)
