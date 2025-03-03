@@ -1,25 +1,14 @@
-// backend/src/controllers/temperatureController.ts
-// เพิ่มฟังก์ชันสำหรับ Staff
+// src/controllers/temperatureController.ts
+import { Request, Response } from 'express';
+import { TemperatureLogModel } from '../models/TemperatureLog';
+import { OrderModel } from '../models/Order';
 
 /**
- * เพิ่มบันทึกอุณหภูมิใหม่ (สำหรับ Staff)
+ * ดึงข้อมูลอุณหภูมิตาม Order ID
  */
-export const addTemperatureLogByStaff = async (req: Request, res: Response) => {
+export const getTemperatureByOrderId = async (req: Request, res: Response) => {
   try {
-    // ตรวจสอบสิทธิ์การเข้าถึง
-    if (!req.user || !['staff', 'admin'].includes(req.user.role)) {
-      res.status(403).json({ message: 'Permission denied' });
-      return;
-    }
-
-    // ตรวจสอบความถูกต้องของข้อมูล
-    const { error, value } = validateTemperatureLogInput(req.body);
-    if (error) {
-      res.status(400).json({ message: error.details[0].message });
-      return;
-    }
-
-    const { orderId, temperature, humidity, notes } = value;
+    const { orderId } = req.params;
     
     // ตรวจสอบว่าคำสั่งซื้อมีอยู่จริง
     const order = await OrderModel.findById(orderId);
@@ -28,51 +17,139 @@ export const addTemperatureLogByStaff = async (req: Request, res: Response) => {
       return;
     }
 
-    // ดึงข้อมูลสินค้าและช่วงอุณหภูมิที่กำหนด
-    const productInfo = await ProductModel.findById(order.product_id);
-    const minTemp = productInfo?.min_temperature || 0;
-    const maxTemp = productInfo?.max_temperature || 0;
+    // ตรวจสอบสิทธิ์การเข้าถึง (ถ้าไม่ใช่ admin ต้องเป็นเจ้าของคำสั่งซื้อ)
+    if (req.user && order.user_id !== req.user.id && req.user.role !== 'admin') {
+      res.status(403).json({ message: 'Not authorized to access this temperature data' });
+      return;
+    }
 
-    // ตรวจสอบว่าอุณหภูมิอยู่ในช่วงปกติหรือไม่
-    const isAlert = temperature < minTemp || temperature > maxTemp;
+    const temperatureData = await TemperatureLogModel.findByOrderId(orderId);
+    
+    res.json({ 
+      order,
+      temperatureData
+    });
+  } catch (error) {
+    console.error('Get temperature by order ID error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+/**
+ * ดึงสถิติอุณหภูมิตาม Order ID
+ */
+export const getTemperatureStats = async (req: Request, res: Response) => {
+  try {
+    const { orderId } = req.params;
+    
+    // ตรวจสอบว่าคำสั่งซื้อมีอยู่จริง
+    const order = await OrderModel.findById(orderId);
+    if (!order) {
+      res.status(404).json({ message: 'Order not found' });
+      return;
+    }
+
+    // ตรวจสอบสิทธิ์การเข้าถึง (ถ้าไม่ใช่ admin ต้องเป็นเจ้าของคำสั่งซื้อ)
+    if (req.user && order.user_id !== req.user.id && req.user.role !== 'admin') {
+      res.status(403).json({ message: 'Not authorized to access this temperature data' });
+      return;
+    }
+
+    const stats = await TemperatureLogModel.getTemperatureStats(orderId);
+    
+    res.json({ stats });
+  } catch (error) {
+    console.error('Get temperature stats error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+/**
+ * เพิ่มบันทึกอุณหภูมิใหม่
+ */
+export const addTemperatureLog = async (req: Request, res: Response) => {
+  try {
+    // ตรวจสอบสิทธิ์การเข้าถึง
+    if (!req.user || !['staff', 'admin'].includes(req.user.role)) {
+      res.status(403).json({ message: 'Permission denied' });
+      return;
+    }
+
+    const { orderId, temperature, humidity, is_alert } = req.body;
+    
+    // ตรวจสอบว่าคำสั่งซื้อมีอยู่จริง
+    const order = await OrderModel.findById(orderId);
+    if (!order) {
+      res.status(404).json({ message: 'Order not found' });
+      return;
+    }
 
     // สร้างบันทึกอุณหภูมิใหม่
     const temperatureLog = await TemperatureLogModel.create({
       order_id: orderId,
       temperature,
       humidity: humidity || null,
-      is_alert: isAlert,
-      notes: notes || null,
-      recorded_by: req.user.id
+      is_alert: is_alert || false
     });
-
-    // ถ้าอุณหภูมิไม่อยู่ในช่วงที่กำหนด ส่งการแจ้งเตือน
-    if (isAlert) {
-      // บันทึกการแจ้งเตือน
-      await AlertModel.create({
-        order_id: orderId,
-        type: 'temperature',
-        message: `Temperature out of range: ${temperature}°C (Range: ${minTemp}°C - ${maxTemp}°C)`,
-        severity: (temperature < minTemp - 5 || temperature > maxTemp + 5) ? 'high' : 'medium',
-        acknowledged: false
-      });
-      
-      // ส่งการแจ้งเตือนไปยังแอดมินและลูกค้า
-      await notificationService.sendAlert({
-        order_id: orderId,
-        temperature,
-        threshold: { min: minTemp, max: maxTemp },
-        timestamp: new Date()
-      });
-    }
     
     res.status(201).json({ 
       message: 'Temperature log added successfully', 
-      temperatureLog,
-      isAlert
+      temperatureLog 
     });
   } catch (error) {
     console.error('Add temperature log error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+/**
+ * ดึงการแจ้งเตือนอุณหภูมิทั้งหมด
+ */
+export const getAlerts = async (req: Request, res: Response) => {
+  try {
+    // ตรวจสอบสิทธิ์การเข้าถึง
+    if (!req.user || req.user.role !== 'admin') {
+      res.status(403).json({ message: 'Permission denied' });
+      return;
+    }
+
+    const limit = parseInt(req.query.limit as string) || 50;
+    const offset = parseInt(req.query.offset as string) || 0;
+    
+    const alerts = await TemperatureLogModel.findAlerts(limit, offset);
+    
+    res.json({ alerts });
+  } catch (error) {
+    console.error('Get temperature alerts error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+/**
+ * ดึงการแจ้งเตือนอุณหภูมิตาม Order ID
+ */
+export const getAlertsByOrderId = async (req: Request, res: Response) => {
+  try {
+    const { orderId } = req.params;
+    
+    // ตรวจสอบว่าคำสั่งซื้อมีอยู่จริง
+    const order = await OrderModel.findById(orderId);
+    if (!order) {
+      res.status(404).json({ message: 'Order not found' });
+      return;
+    }
+
+    // ตรวจสอบสิทธิ์การเข้าถึง (ถ้าไม่ใช่ admin ต้องเป็นเจ้าของคำสั่งซื้อ)
+    if (req.user && order.user_id !== req.user.id && req.user.role !== 'admin') {
+      res.status(403).json({ message: 'Not authorized to access this temperature data' });
+      return;
+    }
+
+    const alerts = await TemperatureLogModel.findAlertsByOrderId(orderId);
+    
+    res.json({ alerts });
+  } catch (error) {
+    console.error('Get temperature alerts by order ID error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
