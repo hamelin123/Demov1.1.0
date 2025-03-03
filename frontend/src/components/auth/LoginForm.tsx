@@ -24,11 +24,12 @@ export function LoginForm() {
       rememberMe: 'จดจำฉัน',
       forgotPassword: 'ลืมรหัสผ่าน?',
       register: 'ลงทะเบียน',
+      login: 'เข้าสู่ระบบ',
       invalidCredentials: 'อีเมลหรือรหัสผ่านไม่ถูกต้อง',
       emailRequired: 'กรุณากรอกอีเมล',
       emailInvalid: 'รูปแบบอีเมลไม่ถูกต้อง',
       passwordRequired: 'กรุณากรอกรหัสผ่าน',
-      loginFailed: 'การเข้าสู่ระบบล้มเหลว โปรดลองอีกครั้ง'
+      loginFailed: 'การเข้าสู่ระบบล้มเหลว โปรดลองอีกครั้ง',
     },
     en: {
       email: 'Email',
@@ -36,11 +37,12 @@ export function LoginForm() {
       rememberMe: 'Remember me',
       forgotPassword: 'Forgot password?',
       register: 'Register',
+      login: 'Login',
       invalidCredentials: 'Invalid email or password',
       emailRequired: 'Email is required',
       emailInvalid: 'Invalid email format',
       passwordRequired: 'Password is required',
-      loginFailed: 'Login failed. Please try again.'
+      loginFailed: 'Login failed. Please try again.',
     }
   };
 
@@ -222,15 +224,6 @@ export function LoginForm() {
             ) : null}
             {isLoading ? `${t.login}...` : t.login}
           </button>
-        </div>
-        
-        <div className="text-center mt-4">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            {t.noAccount}{' '}
-            <Link href="/auth/register" className="font-medium text-blue-600 dark:text-blue-400 hover:underline">
-              {t.register}
-            </Link>
-          </p>
         </div>
       </form>
     </div>

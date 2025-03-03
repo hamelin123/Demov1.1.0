@@ -349,5 +349,6 @@ export const userSchema = Joi.object({
   role: Joi.string().valid('admin', 'staff', 'user').optional(),
   status: Joi.string().valid('active', 'inactive').optional(),
   phone_number: Joi.string().pattern(new RegExp('^[0-9]{10}$')).optional(),
+  organization: Joi.string(),
   address: Joi.string().max(200).optional()
 });

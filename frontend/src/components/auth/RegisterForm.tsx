@@ -35,6 +35,7 @@ export function RegisterForm() {
       confirmPassword: 'ยืนยันรหัสผ่าน',
       acceptTerms: 'ฉันยอมรับข้อกำหนดและเงื่อนไข',
       login: 'เข้าสู่ระบบ',
+      register: 'ลงทะเบียน',
       nameRequired: 'กรุณากรอกชื่อ-นามสกุล',
       emailRequired: 'กรุณากรอกอีเมล',
       emailInvalid: 'รูปแบบอีเมลไม่ถูกต้อง',
@@ -46,7 +47,7 @@ export function RegisterForm() {
       passwordNotMatch: 'รหัสผ่านไม่ตรงกัน',
       termsRequired: 'กรุณายอมรับข้อกำหนดและเงื่อนไข',
       registrationSuccess: 'ลงทะเบียนสำเร็จ! กรุณาเข้าสู่ระบบ',
-      registrationFailed: 'การลงทะเบียนล้มเหลว โปรดลองอีกครั้ง'
+      registrationFailed: 'การลงทะเบียนล้มเหลว โปรดลองอีกครั้ง',
     },
     en: {
       name: 'Full Name',
@@ -57,6 +58,7 @@ export function RegisterForm() {
       confirmPassword: 'Confirm Password',
       acceptTerms: 'I accept the terms and conditions',
       login: 'Sign in',
+      register: 'Register',
       nameRequired: 'Full name is required',
       emailRequired: 'Email is required',
       emailInvalid: 'Invalid email format',
@@ -68,7 +70,7 @@ export function RegisterForm() {
       passwordNotMatch: 'Passwords do not match',
       termsRequired: 'You must accept the terms and conditions',
       registrationSuccess: 'Registration successful! Please sign in.',
-      registrationFailed: 'Registration failed. Please try again.'
+      registrationFailed: 'Registration failed. Please try again.',
     }
   };
 
@@ -152,13 +154,20 @@ export function RegisterForm() {
     
     try {
       // Prepare data for API
+            // เพิ่มการตรวจสอบและทำความสะอาดค่า company ก่อนส่ง
+      let companyValue = formData.company;
+      // ลบคำว่า "company" ออกจากชื่อถ้ามี
+      companyValue = companyValue.replace(/company/i, '');
+      // ลบเครื่องหมายพิเศษ
+      companyValue = companyValue.replace(/[^\w\s]/gi, '');
+
       const userData = {
-        username: formData.email.split('@')[0], // Create username from email
+        username: formData.email.split('@')[0], 
         email: formData.email,
         password: formData.password,
         full_name: formData.name,
         phone_number: formData.phone,
-        company: formData.company
+        address: formData.company ? `Company: ${formData.company}` : ''
       };
       
       // Send to API
@@ -395,15 +404,6 @@ export function RegisterForm() {
               t.register
             )}
           </button>
-        </div>
-        
-        <div className="text-center mt-4">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            {t.haveAccount}{' '}
-            <Link href="/auth/login" className="font-medium text-blue-600 dark:text-blue-400 hover:underline">
-              {t.login}
-            </Link>
-          </p>
         </div>
       </form>
     </div>
