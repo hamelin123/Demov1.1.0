@@ -46,6 +46,10 @@ export const validateRegisterInput = (data: any) => {
     address: Joi.string().max(200).optional()
       .messages({
         'string.max': 'Address should have a maximum length of {#limit}'
+      }),
+    company: Joi.string().max(100).optional() 
+      .messages({
+        'string.max': 'Company name should have a maximum length of {#limit}'
       })
   });
 

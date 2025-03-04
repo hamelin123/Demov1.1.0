@@ -12,7 +12,7 @@ import {
 } from '../controllers/userController';
 import { authenticate, authorize } from '../middleware/auth';
 import { validateBody } from '../middleware/validation';
-import { userSchema, updateUserStatusSchema } from '../utils/validators';
+import { userSchema } from '../utils/validators';
 
 const router = express.Router();
 

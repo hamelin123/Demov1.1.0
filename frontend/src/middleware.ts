@@ -1,3 +1,4 @@
+// frontend/src/middleware.ts
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { locales } from './lib/i18n';
@@ -13,7 +14,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
   
-  // Get language from cookie (if exists)
+  // Get language from cookie or localStorage (if exists)
   const language = request.cookies.get('language')?.value || 'en';
   
   // Check if language is valid
