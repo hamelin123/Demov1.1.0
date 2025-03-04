@@ -338,52 +338,51 @@ export const updateUser = async (req: Request, res: Response) => {
  * เปลี่ยนสถานะการใช้งานของผู้ใช้ (active/inactive)
  * หมายเหตุ: ฟังก์ชันนี้ถูกคอมเมนต์เนื่องจากไม่มีคอลัมน์ status ในตาราง users
  */
-/* 
-export const updateUserStatus = async (req: Request, res: Response) => {
-  try {
-    // ตรวจสอบสิทธิ์การเข้าถึง
-    if (!req.user || req.user.role !== 'admin') {
-      res.status(403).json({ message: 'Permission denied' });
-      return;
-    }
 
-    const { id } = req.params;
-    const { active } = req.body; // เปลี่ยนจาก status เป็น active หรือฟิลด์อื่นที่มีอยู่จริง
+// export const updateUserStatus = async (req: Request, res: Response) => {
+//   try {
+//     // ตรวจสอบสิทธิ์การเข้าถึง
+//     if (!req.user || req.user.role !== 'admin') {
+//       res.status(403).json({ message: 'Permission denied' });
+//       return;
+//     }
+
+//     const { id } = req.params;
+//     const { status } = req.body; // เปลี่ยนจาก active เป็น status ตามที่ใช้ใน updateUserStatusSchema
     
-    if (active === undefined) {
-      res.status(400).json({ message: 'Active status is required' });
-      return;
-    }
+//     if (!status) {
+//       res.status(400).json({ message: 'Status is required' });
+//       return;
+//     }
 
-    // ตรวจสอบว่าผู้ใช้มีอยู่จริง
-    const existingUser = await UserModel.findById(id);
-    if (!existingUser) {
-      res.status(404).json({ message: 'User not found' });
-      return;
-    }
+//     // ตรวจสอบว่าผู้ใช้มีอยู่จริง
+//     const existingUser = await UserModel.findById(id);
+//     if (!existingUser) {
+//       res.status(404).json({ message: 'User not found' });
+//       return;
+//     }
 
-    // ป้องกันการเปลี่ยนสถานะของตัวเอง
-    if (id === req.user.id) {
-      res.status(400).json({ message: 'Cannot change your own status' });
-      return;
-    }
+//     // ป้องกันการเปลี่ยนสถานะของตัวเอง
+//     if (id === req.user.id) {
+//       res.status(400).json({ message: 'Cannot change your own status' });
+//       return;
+//     }
 
-    // อัปเดตสถานะผู้ใช้
-    const updatedUser = await UserModel.update(id, { active });
+//     // อัปเดตสถานะผู้ใช้ (ถ้าไม่มีคอลัมน์ status ให้ใช้การอัปเดตแบบปกติ)
+//     const updatedUser = await UserModel.update(id, { status });
 
-    // ไม่ส่งข้อมูลรหัสผ่านกลับไป
-    const { password, ...userWithoutPassword } = updatedUser;
+//     // ไม่ส่งข้อมูลรหัสผ่านกลับไป
+//     const { password, ...userWithoutPassword } = updatedUser;
     
-    res.json({
-      message: 'User status updated successfully',
-      user: userWithoutPassword
-    });
-  } catch (error) {
-    console.error('Update user status error:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-};
-*/
+//     res.json({
+//       message: 'User status updated successfully',
+//       user: userWithoutPassword
+//     });
+//   } catch (error) {
+//     console.error('Update user status error:', error);
+//     res.status(500).json({ message: 'Server error' });
+//   }
+// };
 
 /**
  * ลบผู้ใช้ (สำหรับ admin)

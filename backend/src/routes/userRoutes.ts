@@ -7,7 +7,7 @@ import {
   createUser,
   getUserById,
   updateUser,
-  updateUserStatus,
+  // updateUserStatus, <-- ลบบรรทัดนี้ออก
   deleteUser
 } from '../controllers/userController';
 import { authenticate, authorize } from '../middleware/auth';
@@ -64,16 +64,17 @@ router.put(
   }
 );
 
+// ลบเส้นทางนี้เพราะฟังก์ชัน updateUserStatus ถูกคอมเมนต์ไว้
 // เปลี่ยนสถานะผู้ใช้ (active/inactive)
-router.patch(
-  '/:id/status', 
-  authenticate, 
-  authorize(['admin']), 
-  validateBody(updateUserStatusSchema),
-  (req: Request, res: Response) => {
-    updateUserStatus(req, res);
-  }
-);
+// router.patch(
+//   '/:id/status', 
+//   authenticate, 
+//   authorize(['admin']), 
+//   validateBody(updateUserStatusSchema),
+//   (req: Request, res: Response) => {
+//     updateUserStatus(req, res);
+//   }
+// );
 
 // ลบผู้ใช้
 router.delete('/:id', authenticate, authorize(['admin']), (req: Request, res: Response) => {
