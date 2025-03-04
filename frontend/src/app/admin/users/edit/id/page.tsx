@@ -42,10 +42,10 @@ export default function EditUserPage() {
       return;
     }
     
-    // ดึงข้อมูลผู้ใช้ที่ต้องการแก้ไข
+    // ดึงข้อมูลผู้ใช้
     const fetchUser = async () => {
       try {
-        // จำลองการโหลดข้อมูล
+        // จำลองความล่าช้าในการโหลด
         await new Promise(resolve => setTimeout(resolve, 1000));
         
         // ข้อมูลจำลองสำหรับการทดสอบ
@@ -116,7 +116,7 @@ export default function EditUserPage() {
     }
   }, [mounted, userId, router, isAuthenticated, isLoading, currentUser, language]);
   
-  // ถ้ายังไม่ได้โหลดเสร็จ
+  // สถานะกำลังโหลด
   if (!mounted || isLoading || loading) {
     return (
       <div className="p-6 flex justify-center items-center min-h-screen">
@@ -125,7 +125,7 @@ export default function EditUserPage() {
     );
   }
   
-  // ถ้าไม่พบข้อมูลผู้ใช้
+  // ถ้าไม่พบผู้ใช้
   if (!user) {
     return (
       <div className="p-6 max-w-3xl mx-auto">
@@ -146,7 +146,7 @@ export default function EditUserPage() {
     );
   }
   
-  // คำแปลภาษา
+  // การแปล
   const translations = {
     en: {
       editUser: 'Edit User',
@@ -219,22 +219,22 @@ export default function EditUserPage() {
     setSaveLoading(true);
     
     try {
-      // จำลองการบันทึกข้อมูล
+      // จำลองการเรียก API
       await new Promise(resolve => setTimeout(resolve, 1500));
       
-      // ในการใช้งานจริง จะส่งข้อมูลไปยัง API
-      console.log('Saving user data:', formData);
+      // ในแอพจริง คุณจะเรียก API ของคุณที่นี่
+      console.log('กำลังบันทึกข้อมูลผู้ใช้:', formData);
       
       // แสดงข้อความสำเร็จ
       setSuccess(t.userSaved);
       setSaveLoading(false);
       
-      // รอสักครู่แล้วกลับไปยังหน้ารายการผู้ใช้
+      // รอสักครู่แล้วเปลี่ยนเส้นทางไปยังรายการผู้ใช้
       setTimeout(() => {
         router.push('/admin/users');
       }, 2000);
     } catch (error) {
-      console.error('Error saving user:', error);
+      console.error('เกิดข้อผิดพลาดในการบันทึกผู้ใช้:', error);
       setError(t.errorSaving);
       setSaveLoading(false);
     }
