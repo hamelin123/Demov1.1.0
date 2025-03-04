@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { Search, Plus, Eye, Truck, RefreshCw, Filter, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useLanguage } from '@/providers/LanguageProvider';
@@ -14,6 +14,11 @@ export default function AdminOrdersPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [showFilterDropdown, setShowFilterDropdown] = useState(false);
+  
+  // Reference ปุ่มฟิลเตอร์และ dropdown
+  const filterButtonRef = useRef(null);
+  const dropdownRef = useRef(null);
 
   const translations = {
     th: {
@@ -71,6 +76,26 @@ export default function AdminOrdersPage() {
   };
 
   const t = translations[language] || translations.en;
+
+  // เพิ่ม Effect สำหรับการจัดการคลิกนอก dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        showFilterDropdown &&
+        dropdownRef.current && 
+        !dropdownRef.current.contains(event.target) &&
+        filterButtonRef.current && 
+        !filterButtonRef.current.contains(event.target)
+      ) {
+        setShowFilterDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showFilterDropdown]);
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -189,11 +214,16 @@ export default function AdminOrdersPage() {
   const handleStatusFilter = (status) => {
     setStatusFilter(status);
     setCurrentPage(1); // Reset to first page on new filter
+    setShowFilterDropdown(false); // ปิด dropdown เมื่อเลือกฟิลเตอร์แล้ว
   };
 
   const handleRefresh = () => {
     setLoading(true);
     setTimeout(() => setLoading(false), 1000);
+  };
+
+  const toggleFilterDropdown = () => {
+    setShowFilterDropdown(!showFilterDropdown);
   };
 
   const getStatusClass = (status) => {
@@ -331,7 +361,9 @@ export default function AdminOrdersPage() {
         <div className="flex space-x-3">
           <div className="relative">
             <button
+              ref={filterButtonRef}
               type="button"
+              onClick={toggleFilterDropdown}
               className="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white"
             >
               <Filter className="mr-2 h-4 w-4" />
@@ -339,60 +371,65 @@ export default function AdminOrdersPage() {
               <ChevronDown className="ml-2 h-4 w-4" />
             </button>
             
-            <div className="absolute right-0 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-gray-800 z-10">
-              <div className="py-1">
-                <button
-                  onClick={() => handleStatusFilter('all')}
-                  className={`block px-4 py-2 text-sm w-full text-left ${
-                    statusFilter === 'all'
-                      ? 'bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white'
-                      : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
-                  }`}
-                >
-                  {t.all}
-                </button>
-                <button
-                  onClick={() => handleStatusFilter('pending')}
-                  className={`block px-4 py-2 text-sm w-full text-left ${
-                    statusFilter === 'pending'
-                      ? 'bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white'
-                      : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
-                  }`}
-                >
-                  {t.pending}
-                </button>
-                <button
-                  onClick={() => handleStatusFilter('in-transit')}
-                  className={`block px-4 py-2 text-sm w-full text-left ${
-                    statusFilter === 'in-transit'
-                      ? 'bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white'
-                      : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
-                  }`}
-                >
-                  {t.inTransit}
-                </button>
-                <button
-                  onClick={() => handleStatusFilter('delivered')}
-                  className={`block px-4 py-2 text-sm w-full text-left ${
-                    statusFilter === 'delivered'
-                      ? 'bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white'
-                      : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
-                  }`}
-                >
-                  {t.delivered}
-                </button>
-                <button
-                  onClick={() => handleStatusFilter('cancelled')}
-                  className={`block px-4 py-2 text-sm w-full text-left ${
-                    statusFilter === 'cancelled'
-                      ? 'bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white'
-                      : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
-                  }`}
-                >
-                  {t.cancelled}
-                </button>
+            {showFilterDropdown && (
+              <div 
+                ref={dropdownRef}
+                className="absolute right-0 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-gray-800 z-10"
+              >
+                <div className="py-1">
+                  <button
+                    onClick={() => handleStatusFilter('all')}
+                    className={`block px-4 py-2 text-sm w-full text-left ${
+                      statusFilter === 'all'
+                        ? 'bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white'
+                        : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    {t.all}
+                  </button>
+                  <button
+                    onClick={() => handleStatusFilter('pending')}
+                    className={`block px-4 py-2 text-sm w-full text-left ${
+                      statusFilter === 'pending'
+                        ? 'bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white'
+                        : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    {t.pending}
+                  </button>
+                  <button
+                    onClick={() => handleStatusFilter('in-transit')}
+                    className={`block px-4 py-2 text-sm w-full text-left ${
+                      statusFilter === 'in-transit'
+                        ? 'bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white'
+                        : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    {t.inTransit}
+                  </button>
+                  <button
+                    onClick={() => handleStatusFilter('delivered')}
+                    className={`block px-4 py-2 text-sm w-full text-left ${
+                      statusFilter === 'delivered'
+                        ? 'bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white'
+                        : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    {t.delivered}
+                  </button>
+                  <button
+                    onClick={() => handleStatusFilter('cancelled')}
+                    className={`block px-4 py-2 text-sm w-full text-left ${
+                      statusFilter === 'cancelled'
+                        ? 'bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white'
+                        : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    {t.cancelled}
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           <select

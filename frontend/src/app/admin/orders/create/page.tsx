@@ -549,4 +549,3 @@ export default function CreateOrderPage() {
     </div>
   );
 }
-สร้างหน้า admin/temperature/alerts/page.tsx gen ต่อสิ

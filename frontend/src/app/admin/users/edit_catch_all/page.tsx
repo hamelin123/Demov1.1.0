@@ -1,5 +1,33 @@
-// Extract user ID from the current path
-const extractUserId = () => {
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/components/auth/AuthProvider';
+import { useLanguage } from '@/providers/LanguageProvider';
+import Link from 'next/link';
+import { User, Mail, Phone, Building, Shield, AlertCircle, CheckCircle, ArrowLeft } from 'lucide-react';
+
+export default function EditCatchAllPage() {
+  const router = useRouter();
+  const { user: currentUser, isAuthenticated, isLoading } = useAuth();
+  const { language } = useLanguage();
+  const [mounted, setMounted] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saveLoading, setSaveLoading] = useState(false);
+  const [user, setUser] = useState(null);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [formData, setFormData] = useState({
+    full_name: '',
+    email: '',
+    phone_number: '',
+    company: '',
+    role: 'user',
+    status: 'active'
+  });
+
+  // Extract user ID from the current path
+  const extractUserId = () => {
     if (typeof window !== 'undefined') {
       const path = window.location.pathname;
       const match = path.match(/\/admin\/users\/edit\/(\d+)$/);
@@ -125,37 +153,7 @@ const extractUserId = () => {
       fetchUser();
     }
   }, [mounted, router, isAuthenticated, isLoading, currentUser, language]);
-  
-  // ถ้ายังไม่ได้โหลดเสร็จ
-  if (!mounted || isLoading || loading) {
-    return (
-      <div className="p-6 flex justify-center items-center min-h-screen">
-        <div className="h-12 w-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    );
-  }
-  
-  // ถ้าไม่พบข้อมูลผู้ใช้
-  if (!user) {
-    return (
-      <div className="p-6 max-w-3xl mx-auto">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-          <div className="flex items-center text-red-600 dark:text-red-400 mb-4">
-            <AlertCircle className="h-6 w-6 mr-2" />
-            <h2 className="text-xl font-semibold">{error}</h2>
-          </div>
-          <Link 
-            href="/admin/users"
-            className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:underline"
-          >
-            <ArrowLeft className="h-4 w-4 mr-1" />
-            {language === 'en' ? 'Back to Users' : 'กลับไปหน้ารายชื่อผู้ใช้'}
-          </Link>
-        </div>
-      </div>
-    );
-  }
-  
+
   // คำแปลภาษา
   const translations = {
     en: {
@@ -262,6 +260,36 @@ const extractUserId = () => {
       minute: '2-digit'
     });
   };
+
+  // ถ้ายังไม่ได้โหลดเสร็จ
+  if (!mounted || isLoading || loading) {
+    return (
+      <div className="p-6 flex justify-center items-center min-h-screen">
+        <div className="h-12 w-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+  
+  // ถ้าไม่พบข้อมูลผู้ใช้
+  if (!user) {
+    return (
+      <div className="p-6 max-w-3xl mx-auto">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+          <div className="flex items-center text-red-600 dark:text-red-400 mb-4">
+            <AlertCircle className="h-6 w-6 mr-2" />
+            <h2 className="text-xl font-semibold">{error}</h2>
+          </div>
+          <Link 
+            href="/admin/users"
+            className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:underline"
+          >
+            <ArrowLeft className="h-4 w-4 mr-1" />
+            {language === 'en' ? 'Back to Users' : 'กลับไปหน้ารายชื่อผู้ใช้'}
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 max-w-3xl mx-auto">
