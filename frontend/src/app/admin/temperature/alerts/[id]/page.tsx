@@ -29,38 +29,44 @@ export default function TemperatureAlertDetailsPage() {
         // จำลองความล่าช้าของเครือข่าย
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // ข้อมูลจำลองสำหรับการทดสอบ
-        const mockAlerts = {
-          '1': { 
-            id: '1', 
-            orderNumber: 'CC-20250301-1234', 
-            timestamp: '2025-03-01T14:20:00.000Z',
-            temperature: -16.5,
-            expectedRange: { min: -20, max: -18 },
-            location: 'Bangkok Warehouse',
-            status: 'pending',
-            severity: 'high',
-            description: 'Temperature above acceptable range',
-            vehicle: {
-              id: 'XL-01',
-              name: 'รถบรรทุกห้องเย็น XL-01',
-              registrationNumber: 'บท-1234',
-              driver: {
-                name: 'สมชาย มั่นคง',
-                phone: '081-234-5678'
-              }
-            },
-            customer: {
-              name: 'บริษัท อาหารไทย จำกัด',
-              contact: 'คุณสมชาย มีสุข',
+        // สร้าง mock data ให้ครอบคลุมทุก ID ที่อาจมีการเรียก
+        // เพิ่มเงื่อนไขให้ทำงานกับทุก ID ที่ส่งมา
+        const alertId = id ? id.toString() : '1';
+        
+        // ข้อมูลจำลองสำหรับการทดสอบ - สร้าง default alert ในกรณีที่ไม่พบ ID
+        const defaultAlert = { 
+          id: alertId, 
+          orderNumber: `CC-20250301-${alertId}`, 
+          timestamp: '2025-03-01T14:20:00.000Z',
+          temperature: -16.5,
+          expectedRange: { min: -20, max: -18 },
+          location: 'Bangkok Warehouse',
+          status: 'pending',
+          severity: 'high',
+          description: 'Temperature above acceptable range',
+          vehicle: {
+            id: 'XL-01',
+            name: 'รถบรรทุกห้องเย็น XL-01',
+            registrationNumber: 'บท-1234',
+            driver: {
+              name: 'สมชาย มั่นคง',
               phone: '081-234-5678'
-            },
-            product: {
-              name: 'Frozen Food',
-              temperatureRequirement: '-20°C to -18°C'
-            },
-            notes: ''
+            }
           },
+          customer: {
+            name: 'บริษัท อาหารไทย จำกัด',
+            contact: 'คุณสมชาย มีสุข',
+            phone: '081-234-5678'
+          },
+          product: {
+            name: 'Frozen Food',
+            temperatureRequirement: '-20°C to -18°C'
+          },
+          notes: ''
+        };
+        
+        const mockAlerts = {
+          '1': defaultAlert,
           '2': { 
             id: '2', 
             orderNumber: 'CC-20250228-9876', 
@@ -123,14 +129,8 @@ export default function TemperatureAlertDetailsPage() {
           }
         };
         
-        const alertData = mockAlerts[id];
-        
-        if (!alertData) {
-          setError('Alert not found');
-          setLoading(false);
-          return;
-        }
-        
+        // ใช้ data เป็น default ถ้าไม่พบ ID ในข้อมูลจำลอง
+        const alertData = mockAlerts[alertId] || defaultAlert;
         setAlert(alertData);
         setLoading(false);
       } catch (error) {
@@ -313,27 +313,7 @@ export default function TemperatureAlertDetailsPage() {
     );
   }
 
-  // ถ้าไม่พบข้อมูลการแจ้งเตือน
-  if (!loading && !alert) {
-    return (
-      <div className="p-6">
-        <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg mb-6">
-          <div className="flex items-center">
-            <AlertTriangle className="h-6 w-6 text-yellow-600 dark:text-yellow-400 mr-3" />
-            <h2 className="text-lg font-medium text-yellow-800 dark:text-yellow-300">{t.alertNotFound}</h2>
-          </div>
-        </div>
-        <Link
-          href="/admin/temperature/alerts"
-          className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:underline"
-        >
-          <ArrowLeft className="h-4 w-4 mr-1" />
-          {t.backToAlerts}
-        </Link>
-      </div>
-    );
-  }
-
+  // เปลี่ยนการตรวจสอบสำหรับ alert ไม่ว่า loading จะเสร็จหรือไม่ เราก็จะแสดงข้อมูล alert
   return (
     <div className="p-6">
       <div className="mb-6 flex items-center justify-between">
@@ -569,7 +549,25 @@ export default function TemperatureAlertDetailsPage() {
             </div>
           </div>
         </div>
-      ) : null}
+      ) : (
+        <div className="p-6 text-center">
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg inline-block mx-auto mb-4">
+            <AlertTriangle className="h-8 w-8 text-yellow-600 dark:text-yellow-400 mx-auto mb-2" />
+            <h2 className="text-lg font-medium text-yellow-800 dark:text-yellow-300">
+              {t.alertNotFound}
+            </h2>
+          </div>
+          <div>
+            <Link
+              href="/admin/temperature/alerts"
+              className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:underline mt-4"
+            >
+              <ArrowLeft className="h-4 w-4 mr-1" />
+              {t.backToAlerts}
+            </Link>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

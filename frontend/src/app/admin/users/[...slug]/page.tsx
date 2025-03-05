@@ -1,3 +1,8 @@
+// frontend/src/app/admin/users/[...slug]/page.tsx
+// ควรจะแยกเป็น:
+// - /admin/users/[id]/page.tsx สำหรับดูรายละเอียดผู้ใช้
+// - /admin/users/[id]/edit/page.tsx สำหรับแก้ไขข้อมูลผู้ใช้
+
 'use client';
 
 import { useState, useEffect } from 'react';
