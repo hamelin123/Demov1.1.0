@@ -3,10 +3,12 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { useLanguage } from '@/providers/LanguageProvider';
-import { AlertTriangle, Search, Filter, RefreshCw, Download, ArrowDownToLine, ThermometerSnowflake, Calendar, CheckCircle } from 'lucide-react';
+import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { AlertTriangle, Filter, RefreshCw, Download, ArrowDownToLine, ThermometerSnowflake, Calendar, CheckCircle, Search } from 'lucide-react';
 
 export default function TemperatureAlertsPage() {
+  const { id } = useParams();
   const { user, isAuthenticated, isLoading } = useAuth();
   const { language } = useLanguage();
   const [mounted, setMounted] = useState(false);
@@ -347,7 +349,7 @@ export default function TemperatureAlertsPage() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {/* Search */}
           <div className="relative">
-            <Search className="absolute left-3 top-3 text-gray-400" size={18} />
+            <span className="absolute left-3 top-3 text-gray-400">🔍</span>
             <input
               type="text"
               placeholder={t.search}
@@ -514,12 +516,12 @@ export default function TemperatureAlertsPage() {
                           {t.view}
                         </Link>
                         {alert.status !== 'resolved' && (
-                          <button
-                            onClick={() => handleResolveAlert(alert.id)}
+                          <Link
+                            href={`/admin/temperature/alerts/${alert.id}/edit`}
                             className="text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300"
                           >
-                            {t.resolve}
-                          </button>
+                            {language === 'th' ? 'แก้ไข' : 'Edit'}
+                          </Link>
                         )}
                       </div>
                     </td>
