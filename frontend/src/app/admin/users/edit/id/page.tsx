@@ -45,7 +45,7 @@ export default function EditUserPage() {
     // ดึงข้อมูลผู้ใช้
     const fetchUser = async () => {
       try {
-        // จำลองความล่าช้าในการโหลด
+        // จำลองการโหลดข้อมูล
         await new Promise(resolve => setTimeout(resolve, 1000));
         
         // ข้อมูลจำลองสำหรับการทดสอบ
@@ -82,6 +82,27 @@ export default function EditUserPage() {
             role: 'staff',
             status: 'active',
             created_at: '2025-02-01T09:15:00Z'
+          },
+          '4': {
+            id: '4',
+            username: 'alicejones',
+            full_name: 'Alice Jones',
+            email: 'alice@example.com',
+            phone_number: '091-234-5678',
+            role: 'user',
+            status: 'inactive',
+            created_at: '2025-02-10T11:20:00Z'
+          },
+          '5': {
+            id: '5',
+            username: 'davidlee',
+            full_name: 'David Lee',
+            email: 'david@example.com',
+            phone_number: '083-456-7890',
+            company: 'Tech Company',
+            role: 'user',
+            status: 'active',
+            created_at: '2025-02-18T16:30:00Z'
           }
         };
         
