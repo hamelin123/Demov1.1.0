@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { useLanguage } from '@/providers/LanguageProvider';
 import { 
@@ -20,6 +20,8 @@ import {
   Title,
   Tooltip,
   Legend,
+  Filler,
+  
 } from 'chart.js';
 import { Bar, Line } from 'react-chartjs-2';
 
@@ -32,7 +34,8 @@ ChartJS.register(
   BarElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  Filler
 );
 
 // สร้าง interface สำหรับข้อมูลรายงาน
@@ -41,6 +44,8 @@ interface ReportDataStats {
   orderCount: number;
   averageOrderValue: number;
   growthRate: number;
+  profit?: number; // Add profit
+  cost?: number; // Add cost
 }
 
 interface ReportDataset {
@@ -51,6 +56,7 @@ interface ReportDataset {
   tension?: number;
   yAxisID?: string;
   borderWidth?: number;
+  fill?: boolean; // Add fill
 }
 
 interface ProductData {
@@ -58,6 +64,8 @@ interface ProductData {
   revenue: number;
   orders: number;
   averageValue: number;
+  profit?:number; // Add profit
+  cost?: number; // Add cost
 }
 
 interface CustomerData {
@@ -65,6 +73,8 @@ interface CustomerData {
   revenue: number;
   orders: number;
   averageValue: number;
+  profit?: number; // Add profit
+  cost?: number; // Add cost
 }
 
 interface MonthlyData {
@@ -72,6 +82,10 @@ interface MonthlyData {
   current: number;
   previous: number;
   growth: number;
+  profitCurrent?: number; // Add profitCurrent
+  profitPrevious?: number; // Add profitPrevious
+  costCurrent?: number; // Add costCurrent
+  costPrevious?: number; // Add costPrevious
 }
 
 interface QuarterlyData {
@@ -80,6 +94,8 @@ interface QuarterlyData {
   orders: number;
   averageValue: number;
   growth: number | null;
+  profit?: number; // Add profit
+  cost?: number; // Add cost
 }
 
 interface ReportDataItem {
@@ -92,16 +108,29 @@ interface ReportDataItem {
   quarterlyData?: QuarterlyData[];
 }
 
+// Define possible report types
+type ReportType =
+  | 'revenue-trends'
+  | 'sales-by-product'
+  | 'sales-by-customer'
+  | 'monthly-sales'
+  | 'quarterly-comparison';
+interface DateRange {
+    start: string;
+    end: string;
+}
+const DEFAULT_DATE_RANGE: DateRange = {
+    start: '',
+    end: ''
+};
+
 export default function SalesReportsPage() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const { language } = useLanguage();
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [dateRange, setDateRange] = useState({
-    start: '',
-    end: ''
-  });
-  const [selectedReport, setSelectedReport] = useState('revenue-trends');
+  const [dateRange, setDateRange] = useState<DateRange>(DEFAULT_DATE_RANGE);
+  const [selectedReport, setSelectedReport] = useState<ReportType>('revenue-trends');
   const [reportData, setReportData] = useState<ReportDataItem | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [productFilter, setProductFilter] = useState('all');
@@ -148,7 +177,9 @@ export default function SalesReportsPage() {
       pharmaceuticals: 'ยาและเวชภัณฑ์',
       dairyProducts: 'ผลิตภัณฑ์นม',
       medicalSupplies: 'เวชภัณฑ์',
-      flowers: 'ดอกไม้และพืช'
+      flowers: 'ดอกไม้และพืช',
+      profit: 'กำไร', // Add profit
+      cost: 'ต้นทุน', // Add cost
     },
     en: {
       title: 'Sales Reports',
@@ -189,7 +220,9 @@ export default function SalesReportsPage() {
       pharmaceuticals: 'Pharmaceuticals',
       dairyProducts: 'Dairy Products',
       medicalSupplies: 'Medical Supplies',
-      flowers: 'Flowers & Plants'
+      flowers: 'Flowers & Plants',
+      profit: 'Profit', // Add profit
+      cost: 'Cost', // Add cost
     }
   };
 
@@ -233,7 +266,7 @@ export default function SalesReportsPage() {
     }));
   };
 
-  const handleReportTypeChange = (reportType: string) => {
+  const handleReportTypeChange = (reportType: ReportType) => {
     setSelectedReport(reportType);
   };
 
@@ -253,7 +286,8 @@ export default function SalesReportsPage() {
     generateReport();
   };
 
-  const generateReport = async () => {
+  // Generate mock data for reports
+  const generateMockReportData = async (reportType: ReportType): Promise<ReportDataItem> => {
     setLoading(true);
     
     try {
@@ -261,8 +295,8 @@ export default function SalesReportsPage() {
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       // Mock data for revenue trends
-      if (selectedReport === 'revenue-trends') {
-        const mockData: ReportDataItem = {
+      if (reportType === 'revenue-trends') {
+        return {
           labels: ['Mar 1', 'Mar 2', 'Mar 3', 'Mar 4', 'Mar 5', 'Mar 6', 'Mar 7', 'Mar 8', 'Mar 9', 'Mar 10'],
           datasets: [
             {
@@ -270,7 +304,8 @@ export default function SalesReportsPage() {
               data: [125000, 135000, 115000, 142000, 156000, 148000, 162000, 158000, 175000, 185000],
               borderColor: 'rgb(75, 192, 192)',
               backgroundColor: 'rgba(75, 192, 192, 0.2)',
-              tension: 0.3
+              tension: 0.3,
+              fill: true
             },
             {
               label: 'Orders',
@@ -285,16 +320,16 @@ export default function SalesReportsPage() {
             totalRevenue: 1501000,
             orderCount: 312,
             averageOrderValue: 4812.18,
-            growthRate: 12.5
+            growthRate: 12.5,
+            profit: 300200,
+            cost: 1200800
           }
         };
-        
-        setReportData(mockData);
       }
       
       // Mock data for sales by product type
-      else if (selectedReport === 'sales-by-product') {
-        const mockData: ReportDataItem = {
+      else if (reportType === 'sales-by-product') {
+        return {
           labels: ['Frozen Food', 'Pharmaceuticals', 'Dairy Products', 'Medical Supplies', 'Flowers & Plants'],
           datasets: [
             {
@@ -318,20 +353,18 @@ export default function SalesReportsPage() {
             }
           ],
           productData: [
-            { product: 'Frozen Food', revenue: 580000, orders: 120, averageValue: 4833.33 },
-            { product: 'Pharmaceuticals', revenue: 425000, orders: 85, averageValue: 5000.00 },
-            { product: 'Dairy Products', revenue: 320000, orders: 64, averageValue: 5000.00 },
-            { product: 'Medical Supplies', revenue: 150000, orders: 28, averageValue: 5357.14 },
-            { product: 'Flowers & Plants', revenue: 95000, orders: 19, averageValue: 5000.00 }
+            { product: 'Frozen Food', revenue: 580000, orders: 120, averageValue: 4833.33, profit: 116000, cost: 464000 },
+            { product: 'Pharmaceuticals', revenue: 425000, orders: 85, averageValue: 5000.00, profit: 85000, cost: 340000 },
+            { product: 'Dairy Products', revenue: 320000, orders: 64, averageValue: 5000.00, profit: 64000, cost: 256000 },
+            { product: 'Medical Supplies', revenue: 150000, orders: 28, averageValue: 5357.14, profit: 30000, cost: 120000 },
+            { product: 'Flowers & Plants', revenue: 95000, orders: 19, averageValue: 5000.00, profit: 19000, cost: 76000 }
           ]
         };
-        
-        setReportData(mockData);
       }
       
       // Mock data for sales by customer
-      else if (selectedReport === 'sales-by-customer') {
-        const mockData: ReportDataItem = {
+      else if (reportType === 'sales-by-customer') {
+        return {
           labels: ['ABC Hospital', 'XYZ Supermarket', 'DEF Distributor', 'GHI Pharmacy', 'JKL Restaurant'],
           datasets: [
             {
@@ -362,13 +395,11 @@ export default function SalesReportsPage() {
             { customer: 'JKL Restaurant', revenue: 180000, orders: 25, averageValue: 7200.00 }
           ]
         };
-        
-        setReportData(mockData);
       }
       
       // Mock data for monthly sales
-      else if (selectedReport === 'monthly-sales') {
-        const mockData: ReportDataItem = {
+      else if (reportType === 'monthly-sales') {
+        return {
           labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
           datasets: [
             {
@@ -395,13 +426,11 @@ export default function SalesReportsPage() {
             { month: 'Jun', current: 1580000, previous: 1420000, growth: 11.3 }
           ]
         };
-        
-        setReportData(mockData);
       }
       
       // Mock data for quarterly comparison
-      else if (selectedReport === 'quarterly-comparison') {
-        const mockData: ReportDataItem = {
+      else if (reportType === 'quarterly-comparison') {
+        return {
           labels: ['Q1 2024', 'Q2 2024', 'Q3 2024', 'Q4 2024', 'Q1 2025', 'Q2 2025'],
           datasets: [
             {
@@ -421,15 +450,28 @@ export default function SalesReportsPage() {
             { quarter: 'Q2 2025', revenue: 4680000, orders: 825, averageValue: 5672.73, growth: 8.1 }
           ]
         };
-        
-        setReportData(mockData);
       }
       
+      // Default empty report for unknown types
+      return {
+        labels: [],
+        datasets: []
+      };
     } catch (error) {
       console.error('Error generating report:', error);
+      // Return empty data in case of error
+      return {
+        labels: [],
+        datasets: []
+      };
     } finally {
       setLoading(false);
     }
+  };
+
+  const generateReport = async () => {
+    const reportData = await generateMockReportData(selectedReport);
+    setReportData(reportData);
   };
 
   const exportReport = (format: string) => {
@@ -462,27 +504,27 @@ export default function SalesReportsPage() {
       maintainAspectRatio: false,
       plugins: {
         legend: {
-          position: 'top' as const, // เพิ่ม as const เพื่อบอก TypeScript ว่านี่เป็นค่าคงที่
+          position: "top", // ใช้ double quotes แทน
         },
         title: {
           display: true,
-          text: t.revenueTrends,
+          text: t.salesByProduct,
         },
       },
       scales: {
         y: {
-          type: 'linear' as const, // เพิ่ม as const
+          type: "linear", // ใช้ double quotes
           display: true,
-          position: 'left' as const, // เพิ่ม as const
+          position: "left", // ใช้ double quotes
           title: {
             display: true,
             text: 'Revenue (THB)'
           }
         },
         y1: {
-          type: 'linear' as const, // เพิ่ม as const
+          type: "linear", // ใช้ double quotes
           display: true,
-          position: 'right' as const, // เพิ่ม as const
+          position: "right", // ใช้ double quotes
           grid: {
             drawOnChartArea: false,
           },
@@ -993,7 +1035,7 @@ export default function SalesReportsPage() {
             </label>
             <select
               value={selectedReport}
-              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleReportTypeChange(e.target.value)}
+              onChange={(e) => handleReportTypeChange(e.target.value as ReportType)}
               className="w-full pl-3 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white appearance-none"
             >
               <option value="revenue-trends">{t.revenueTrends}</option>
