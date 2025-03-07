@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { useLanguage } from '@/providers/LanguageProvider';
 import { 
@@ -35,6 +35,63 @@ ChartJS.register(
   Legend
 );
 
+// สร้าง interface สำหรับข้อมูลรายงาน
+interface ReportDataStats {
+  totalRevenue: number;
+  orderCount: number;
+  averageOrderValue: number;
+  growthRate: number;
+}
+
+interface ReportDataset {
+  label: string;
+  data: (number | null)[];
+  borderColor: string | string[];
+  backgroundColor: string | string[];
+  tension?: number;
+  yAxisID?: string;
+  borderWidth?: number;
+}
+
+interface ProductData {
+  product: string;
+  revenue: number;
+  orders: number;
+  averageValue: number;
+}
+
+interface CustomerData {
+  customer: string;
+  revenue: number;
+  orders: number;
+  averageValue: number;
+}
+
+interface MonthlyData {
+  month: string;
+  current: number;
+  previous: number;
+  growth: number;
+}
+
+interface QuarterlyData {
+  quarter: string;
+  revenue: number;
+  orders: number;
+  averageValue: number;
+  growth: number | null;
+}
+
+interface ReportDataItem {
+  labels: string[];
+  datasets: ReportDataset[];
+  stats?: ReportDataStats;
+  productData?: ProductData[];
+  customerData?: CustomerData[];
+  monthlyData?: MonthlyData[];
+  quarterlyData?: QuarterlyData[];
+}
+
 export default function SalesReportsPage() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const { language } = useLanguage();
@@ -45,7 +102,7 @@ export default function SalesReportsPage() {
     end: ''
   });
   const [selectedReport, setSelectedReport] = useState('revenue-trends');
-  const [reportData, setReportData] = useState(null);
+  const [reportData, setReportData] = useState<ReportDataItem | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [productFilter, setProductFilter] = useState('all');
   const [showFilters, setShowFilters] = useState(false);
@@ -168,7 +225,7 @@ export default function SalesReportsPage() {
     setLoading(false);
   }, [isAuthenticated, isLoading, user]);
 
-  const handleDateChange = (e) => {
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setDateRange(prev => ({
       ...prev,
@@ -176,15 +233,15 @@ export default function SalesReportsPage() {
     }));
   };
 
-  const handleReportTypeChange = (reportType) => {
+  const handleReportTypeChange = (reportType: string) => {
     setSelectedReport(reportType);
   };
 
-  const handleSearch = (e) => {
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
   };
 
-  const handleProductFilterChange = (e) => {
+  const handleProductFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setProductFilter(e.target.value);
   };
 
@@ -205,7 +262,7 @@ export default function SalesReportsPage() {
       
       // Mock data for revenue trends
       if (selectedReport === 'revenue-trends') {
-        const mockData = {
+        const mockData: ReportDataItem = {
           labels: ['Mar 1', 'Mar 2', 'Mar 3', 'Mar 4', 'Mar 5', 'Mar 6', 'Mar 7', 'Mar 8', 'Mar 9', 'Mar 10'],
           datasets: [
             {
@@ -237,7 +294,7 @@ export default function SalesReportsPage() {
       
       // Mock data for sales by product type
       else if (selectedReport === 'sales-by-product') {
-        const mockData = {
+        const mockData: ReportDataItem = {
           labels: ['Frozen Food', 'Pharmaceuticals', 'Dairy Products', 'Medical Supplies', 'Flowers & Plants'],
           datasets: [
             {
@@ -274,7 +331,7 @@ export default function SalesReportsPage() {
       
       // Mock data for sales by customer
       else if (selectedReport === 'sales-by-customer') {
-        const mockData = {
+        const mockData: ReportDataItem = {
           labels: ['ABC Hospital', 'XYZ Supermarket', 'DEF Distributor', 'GHI Pharmacy', 'JKL Restaurant'],
           datasets: [
             {
@@ -311,7 +368,7 @@ export default function SalesReportsPage() {
       
       // Mock data for monthly sales
       else if (selectedReport === 'monthly-sales') {
-        const mockData = {
+        const mockData: ReportDataItem = {
           labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
           datasets: [
             {
@@ -344,7 +401,7 @@ export default function SalesReportsPage() {
       
       // Mock data for quarterly comparison
       else if (selectedReport === 'quarterly-comparison') {
-        const mockData = {
+        const mockData: ReportDataItem = {
           labels: ['Q1 2024', 'Q2 2024', 'Q3 2024', 'Q4 2024', 'Q1 2025', 'Q2 2025'],
           datasets: [
             {
@@ -375,7 +432,7 @@ export default function SalesReportsPage() {
     }
   };
 
-  const exportReport = (format) => {
+  const exportReport = (format: string) => {
     // Simulate export
     console.log(`Exporting report in ${format} format...`);
     alert(`Report would be exported as ${format} in a real implementation.`);
@@ -386,7 +443,7 @@ export default function SalesReportsPage() {
     window.print();
   };
 
-  const formatCurrency = (value) => {
+  const formatCurrency = (value: number) => {
     return new Intl.NumberFormat(language === 'en' ? 'en-US' : 'th-TH', {
       style: 'currency',
       currency: 'THB',
@@ -405,7 +462,7 @@ export default function SalesReportsPage() {
       maintainAspectRatio: false,
       plugins: {
         legend: {
-          position: 'top',
+          position: 'top' as const, // เพิ่ม as const เพื่อบอก TypeScript ว่านี่เป็นค่าคงที่
         },
         title: {
           display: true,
@@ -414,18 +471,18 @@ export default function SalesReportsPage() {
       },
       scales: {
         y: {
-          type: 'linear',
+          type: 'linear' as const, // เพิ่ม as const
           display: true,
-          position: 'left',
+          position: 'left' as const, // เพิ่ม as const
           title: {
             display: true,
             text: 'Revenue (THB)'
           }
         },
         y1: {
-          type: 'linear',
+          type: 'linear' as const, // เพิ่ม as const
           display: true,
-          position: 'right',
+          position: 'right' as const, // เพิ่ม as const
           grid: {
             drawOnChartArea: false,
           },
@@ -447,19 +504,19 @@ export default function SalesReportsPage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg">
               <h4 className="text-sm text-gray-500 dark:text-gray-400">{t.totalRevenue}</h4>
-              <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{formatCurrency(stats.totalRevenue)}</p>
+              <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{stats && formatCurrency(stats.totalRevenue)}</p>
             </div>
             <div className="bg-green-50 dark:bg-green-900/30 p-4 rounded-lg">
               <h4 className="text-sm text-gray-500 dark:text-gray-400">{t.orderCount}</h4>
-              <p className="text-2xl font-bold text-green-600 dark:text-green-400">{stats.orderCount}</p>
+              <p className="text-2xl font-bold text-green-600 dark:text-green-400">{stats && stats.orderCount}</p>
             </div>
             <div className="bg-purple-50 dark:bg-purple-900/30 p-4 rounded-lg">
               <h4 className="text-sm text-gray-500 dark:text-gray-400">{t.averageOrderValue}</h4>
-              <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">{formatCurrency(stats.averageOrderValue)}</p>
+              <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">{stats && formatCurrency(stats.averageOrderValue)}</p>
             </div>
             <div className="bg-yellow-50 dark:bg-yellow-900/30 p-4 rounded-lg">
               <h4 className="text-sm text-gray-500 dark:text-gray-400">{t.growthRate}</h4>
-              <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">+{stats.growthRate}%</p>
+              <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{stats && `+${stats.growthRate}%`}</p>
             </div>
           </div>
           
@@ -520,7 +577,7 @@ export default function SalesReportsPage() {
                 </tr>
               </thead>
               <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                {productData.map((data, idx) => (
+                {productData && productData.map((data, idx) => (
                   <tr key={idx} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
                       {data.product === 'Frozen Food' ? t.frozenFood : 
@@ -605,7 +662,7 @@ export default function SalesReportsPage() {
                 </tr>
               </thead>
               <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                {customerData.map((data, idx) => (
+                {customerData && customerData.map((data, idx) => (
                   <tr key={idx} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline">
                       <Link href={`/admin/customers/${data.customer.toLowerCase().replace(/\s+/g, '-')}`}>
@@ -662,7 +719,7 @@ export default function SalesReportsPage() {
       <div className="space-y-6">
         <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
           <div className="mb-4">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t.monthlySales}</h3>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t.monthlySales}</h3>
           </div>
           
           <div className="h-80 mb-6">
@@ -688,7 +745,7 @@ export default function SalesReportsPage() {
                 </tr>
               </thead>
               <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                {monthlyData.map((data, idx) => (
+                {monthlyData && monthlyData.map((data, idx) => (
                   <tr key={idx} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
                       {data.month} {data.current ? '2025' : '2024'}
@@ -793,7 +850,7 @@ export default function SalesReportsPage() {
                 </tr>
               </thead>
               <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                {quarterlyData.map((data, idx) => (
+                {quarterlyData && quarterlyData.map((data, idx) => (
                   <tr key={idx} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
                       {data.quarter}
@@ -936,7 +993,7 @@ export default function SalesReportsPage() {
             </label>
             <select
               value={selectedReport}
-              onChange={(e) => handleReportTypeChange(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleReportTypeChange(e.target.value)}
               className="w-full pl-3 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white appearance-none"
             >
               <option value="revenue-trends">{t.revenueTrends}</option>

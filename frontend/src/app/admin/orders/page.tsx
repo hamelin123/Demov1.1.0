@@ -8,7 +8,6 @@ import { useLanguage } from '@/providers/LanguageProvider';
 export default function AdminOrdersPage() {
   const { language } = useLanguage();
   const [loading, setLoading] = useState(true);
-  const [orders, setOrders] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
@@ -17,8 +16,23 @@ export default function AdminOrdersPage() {
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   
   // Reference ปุ่มฟิลเตอร์และ dropdown
-  const filterButtonRef = useRef(null);
-  const dropdownRef = useRef(null);
+  const filterButtonRef = useRef<HTMLButtonElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  interface Order {
+    id: string;
+    order_number: string;
+    customer_name: string;
+    customer_email: string;
+    date: string;
+    status: string;
+    destination: string;
+    temperature_range: string;
+    items: number;
+    total: number;
+  }
+  
+  const [orders, setOrders] = useState<Order[]>([]);
 
   const translations = {
     th: {
@@ -79,13 +93,13 @@ export default function AdminOrdersPage() {
 
   // เพิ่ม Effect สำหรับการจัดการคลิกนอก dropdown
   useEffect(() => {
-    const handleClickOutside = (event) => {
+    const handleClickOutside = (event: MouseEvent): void => {
       if (
         showFilterDropdown &&
         dropdownRef.current && 
-        !dropdownRef.current.contains(event.target) &&
+        !dropdownRef.current.contains(event.target as Node) &&
         filterButtonRef.current && 
-        !filterButtonRef.current.contains(event.target)
+        !filterButtonRef.current.contains(event.target as Node)
       ) {
         setShowFilterDropdown(false);
       }
@@ -202,31 +216,31 @@ export default function AdminOrdersPage() {
     fetchOrders();
   }, [searchQuery, statusFilter, currentPage, pageSize]);
 
-  const handlePageChange = (page) => {
+  const handlePageChange = (page: number): void => {
     setCurrentPage(page);
   };
 
-  const handleSearch = (e) => {
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>): void => {
     setSearchQuery(e.target.value);
     setCurrentPage(1); // Reset to first page on new search
   };
 
-  const handleStatusFilter = (status) => {
+  const handleStatusFilter = (status: string): void => {
     setStatusFilter(status);
     setCurrentPage(1); // Reset to first page on new filter
     setShowFilterDropdown(false); // ปิด dropdown เมื่อเลือกฟิลเตอร์แล้ว
   };
 
-  const handleRefresh = () => {
+  const handleRefresh = (): void => {
     setLoading(true);
     setTimeout(() => setLoading(false), 1000);
   };
 
-  const toggleFilterDropdown = () => {
+  const toggleFilterDropdown = (): void => {
     setShowFilterDropdown(!showFilterDropdown);
   };
 
-  const getStatusClass = (status) => {
+  const getStatusClass = (status: string): string => {
     switch(status) {
       case 'pending':
         return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300';
@@ -241,7 +255,7 @@ export default function AdminOrdersPage() {
     }
   };
 
-  const getStatusLabel = (status) => {
+  const getStatusLabel = (status: string): string => {
     switch(status) {
       case 'pending':
         return t.pending;
@@ -256,7 +270,7 @@ export default function AdminOrdersPage() {
     }
   };
 
-  const renderPagination = () => {
+  const renderPagination = (): JSX.Element => {
     const pageNumbers = [];
     const maxPagesToShow = 5;
     
@@ -306,7 +320,7 @@ export default function AdminOrdersPage() {
     );
   };
 
-  const renderResultsInfo = () => {
+  const renderResultsInfo = (): string | null => {
     if (orders.length === 0) return null;
     
     const startIndex = (currentPage - 1) * pageSize + 1;
@@ -314,9 +328,9 @@ export default function AdminOrdersPage() {
     const totalOrders = (totalPages - 1) * pageSize + (currentPage === totalPages ? orders.length : pageSize);
     
     return t.showingResults
-      .replace('{start}', startIndex)
-      .replace('{end}', endIndex)
-      .replace('{total}', totalOrders);
+    .replace('{start}', startIndex.toString())
+    .replace('{end}', endIndex.toString())
+    .replace('{total}', totalOrders.toString());
   };
 
   return (

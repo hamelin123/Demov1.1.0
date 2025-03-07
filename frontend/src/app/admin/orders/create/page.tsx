@@ -109,17 +109,17 @@ export default function CreateOrderPage() {
 
   const t = translations[language] || translations.en;
 
-  const validateEmail = (email) => {
+  const validateEmail = (email: string): boolean => {
     const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     return re.test(String(email).toLowerCase());
   };
-
-  const validatePhone = (phone) => {
+  
+  const validatePhone = (phone: string): boolean => {
     const re = /^(\+\d{1,3}[- ]?)?(\d{8,15})$/;
     return re.test(phone);
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>): void => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -127,7 +127,7 @@ export default function CreateOrderPage() {
     }));
   };
 
-  const handleItemChange = (id, field, value) => {
+  const handleItemChange = (id: number, field: string, value: string | number): void => {
     setOrderItems(items => 
       items.map(item => 
         item.id === id ? { ...item, [field]: value } : item
@@ -135,7 +135,7 @@ export default function CreateOrderPage() {
     );
   };
 
-  const addItem = () => {
+  const addItem = (): void => {
     const newItemId = Math.max(...orderItems.map(item => item.id), 0) + 1;
     setOrderItems([
       ...orderItems,
@@ -143,13 +143,13 @@ export default function CreateOrderPage() {
     ]);
   };
 
-  const removeItem = (id) => {
+  const removeItem = (id: number): void => {
     if (orderItems.length > 1) {
       setOrderItems(orderItems.filter(item => item.id !== id));
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     setError('');
     setSuccess('');
