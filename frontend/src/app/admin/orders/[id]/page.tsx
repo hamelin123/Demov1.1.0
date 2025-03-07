@@ -10,6 +10,48 @@ import {
   Calendar, Thermometer, FileText, CheckCircle, AlertCircle
 } from 'lucide-react';
 
+// Define the type for order data
+interface OrderData {
+  id: string;
+  orderNumber: string;
+  status: string;
+  date: string;
+  customer: {
+    name: string;
+    email: string;
+    phone: string;
+  };
+  pickup: {
+    address: string;
+    date: string;
+  };
+  delivery: {
+    address: string;
+    date: string;
+  };
+  currentLocation: string;
+  locationUpdatedAt: string;
+  items: Array<{
+    id: number;
+    name: string;
+    quantity: number;
+    unit: string;
+    temperature: string;
+    notes: string;
+  }>;
+  vehicle: {
+    id: string;
+    name: string;
+    type: string;
+    currentTemperature: number;
+    driver: {
+      name: string;
+      phone: string;
+    };
+  };
+  notes: string;
+}
+
 export default function OrderDetailsPage() {
   const { id } = useParams();
   const router = useRouter();
@@ -17,8 +59,8 @@ export default function OrderDetailsPage() {
   const { language } = useLanguage();
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [orderData, setOrderData] = useState(null);
-  const [error, setError] = useState(null);
+  const [orderData, setOrderData] = useState<OrderData | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -29,10 +71,13 @@ export default function OrderDetailsPage() {
         // จำลองความล่าช้าของเครือข่าย
         await new Promise(resolve => setTimeout(resolve, 1000));
         
+        // แปลง id ให้เป็น string เสมอ
+        const orderId = Array.isArray(id) ? id[0] : String(id);
+        
         // Mock order data
-        const mockOrder = {
-          id: id,
-          orderNumber: `ORD-20250301-${id.padStart(4, '0')}`,
+        const mockOrder: OrderData = {
+          id: orderId,
+          orderNumber: `ORD-20250301-${orderId.padStart(4, '0')}`,
           status: 'in-transit',
           date: '2025-03-01T14:30:00.000Z',
           customer: {
@@ -182,7 +227,7 @@ export default function OrderDetailsPage() {
 
   const t = translations[language] || translations.en;
 
-  const getStatusClass = (status) => {
+  const getStatusClass = (status: string) => {
     switch(status) {
       case 'pending':
         return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300';
@@ -197,7 +242,7 @@ export default function OrderDetailsPage() {
     }
   };
 
-  const getStatusLabel = (status) => {
+  const getStatusLabel = (status: string) => {
     switch(status) {
       case 'pending':
         return t.pending;
@@ -212,7 +257,7 @@ export default function OrderDetailsPage() {
     }
   };
 
-  const formatDateTime = (dateString) => {
+  const formatDateTime = (dateString: string) => {
     if (!dateString) return '';
     
     const date = new Date(dateString);

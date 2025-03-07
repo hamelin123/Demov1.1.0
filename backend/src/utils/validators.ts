@@ -1,3 +1,4 @@
+// src/utils/validators.ts
 import Joi from 'joi';
 
 /**
@@ -47,7 +48,7 @@ export const validateRegisterInput = (data: any) => {
       .messages({
         'string.max': 'Address should have a maximum length of {#limit}'
       }),
-    company: Joi.string().max(100).optional() 
+    company: Joi.string().max(100).optional()
       .messages({
         'string.max': 'Company name should have a maximum length of {#limit}'
       })
@@ -96,6 +97,10 @@ export const validateProfileUpdateInput = (data: any) => {
     address: Joi.string().max(200).optional()
       .messages({
         'string.max': 'Address should have a maximum length of {#limit}'
+      }),
+    company: Joi.string().max(100).optional()
+      .messages({
+        'string.max': 'Company name should have a maximum length of {#limit}'
       })
   });
 
@@ -259,12 +264,59 @@ export const validateTemperatureLogInput = (data: any) => {
         'number.base': 'Humidity must be a number',
         'number.min': 'Humidity must be at least {#limit}',
         'number.max': 'Humidity must be at most {#limit}'
+      }),
+    location: Joi.string().max(200).optional()
+      .messages({
+        'string.max': 'Location should have a maximum length of {#limit}'
+      }),
+    notes: Joi.string().max(500).optional()
+      .messages({
+        'string.max': 'Notes should have a maximum length of {#limit}'
       })
   });
 
   return schema.validate(data);
 };
 
+/**
+ * ตรวจสอบข้อมูลการอัปเดตสถานะการขนส่ง
+ */
+export const validateShipmentStatusInput = (data: any) => {
+  const schema = Joi.object({
+    orderId: Joi.string().uuid().required()
+      .messages({
+        'string.base': 'Order ID should be a string',
+        'string.empty': 'Order ID is required',
+        'string.uuid': 'Order ID must be a valid UUID',
+        'any.required': 'Order ID is required'
+      }),
+    status: Joi.string().required()
+      .messages({
+        'string.base': 'Status should be a string',
+        'string.empty': 'Status is required',
+        'any.required': 'Status is required'
+      }),
+    location: Joi.string().max(200).required()
+      .messages({
+        'string.base': 'Location should be a string',
+        'string.empty': 'Location is required',
+        'string.max': 'Location should have a maximum length of {#limit}',
+        'any.required': 'Location is required'
+      }),
+    notes: Joi.string().max(500).optional()
+      .messages({
+        'string.max': 'Notes should have a maximum length of {#limit}'
+      }),
+    latitude: Joi.number().optional(),
+    longitude: Joi.number().optional(),
+    vehicleId: Joi.string().uuid().optional()
+      .messages({
+        'string.uuid': 'Vehicle ID must be a valid UUID'
+      })
+  });
+
+  return schema.validate(data);
+};
 
 /**
  * ตรวจสอบข้อมูลผู้ใช้
@@ -319,6 +371,10 @@ export const validateUserInput = (data: any, isUpdate = false) => {
       .messages({
         'string.pattern.base': 'Phone number must be a 10-digit number'
       }),
+    company: Joi.string().max(100).optional()
+      .messages({
+        'string.max': 'Company name should have a maximum length of {#limit}'
+      }),
     address: Joi.string().max(200).optional()
       .messages({
         'string.max': 'Address should have a maximum length of {#limit}'
@@ -353,6 +409,6 @@ export const userSchema = Joi.object({
   role: Joi.string().valid('admin', 'staff', 'user').optional(),
   status: Joi.string().valid('active', 'inactive').optional(),
   phone_number: Joi.string().pattern(new RegExp('^[0-9]{10}$')).optional(),
-  company: Joi.string().optional(),
+  company: Joi.string().max(100).optional(),
   address: Joi.string().max(200).optional()
 });

@@ -19,6 +19,8 @@ export interface Order {
   created_at: Date;
   updated_at: Date;
   estimated_delivery_date?: Date;
+  min_temperature?: number; // เพิ่มฟิลด์นี้
+  max_temperature?: number; // เพิ่มฟิลด์นี้
 }
 
 interface CreateOrderData {

@@ -10,12 +10,33 @@ import {
 import Link from 'next/link';
 import { useLanguage } from '@/providers/LanguageProvider';
 
+// เพิ่ม interface สำหรับข้อมูล User
+interface User {
+  id?: string;
+  username?: string;
+  full_name?: string;
+  email?: string;
+  role: string;
+}
+
+// เพิ่ม interface สำหรับ menu item
+interface MenuItem {
+  name: string;
+  icon: React.ReactNode;
+  href?: string;
+  submenu: boolean;
+  items?: Array<{
+    name: string;
+    href: string;
+  }>;
+}
+
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { language } = useLanguage();
   const [isSidebarOpen, setSidebarOpen] = useState(false);
-  const [isMenuOpen, setMenuOpen] = useState({});
-  const [user, setUser] = useState(null);
+  const [isMenuOpen, setMenuOpen] = useState<Record<string, boolean>>({});
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Translations
@@ -77,7 +98,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const t = translations[language] || translations.en;
 
   // นิยามเมนูด้านข้าง
-  const sidebarMenu = [
+  const sidebarMenu: MenuItem[] = [
     {
       name: t.dashboard,
       icon: <BarChart2 className="h-5 w-5" />,
@@ -158,7 +179,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         }
         
         // แปลงข้อมูลเป็น object
-        const userObj = JSON.parse(userData);
+        const userObj = JSON.parse(userData) as User;
         
         // ตรวจสอบว่าเป็น admin หรือไม่
         if (userObj.role !== 'admin') {
@@ -190,8 +211,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   };
   
   // Toggle submenu
-  const toggleMenu = (menuName) => {
-    setMenuOpen(prev => ({
+  const toggleMenu = (menuName: string) => {
+    setMenuOpen((prev: Record<string, boolean>) => ({
       ...prev,
       [menuName]: !prev[menuName]
     }));
@@ -203,6 +224,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     localStorage.removeItem('user');
     localStorage.removeItem('isLoggedIn');
     router.push('/auth/login');
+    
+    setTimeout(() => {
+      window.location.href = '/auth/login';
+    }, 1000);
   };
 
   // กรณีกำลังโหลดหรือตรวจสอบสิทธิ์
@@ -281,7 +306,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     />
                   </button>
                   
-                  {isMenuOpen[item.name] && (
+                  {isMenuOpen[item.name] && item.items && (
                     <div className="ml-8 mt-1 space-y-1">
                       {item.items.map(subItem => (
                         <Link
@@ -302,7 +327,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 </>
               ) : (
                 <Link
-                  href={item.href}
+                  href={item.href || "#"}
                   className="group flex items-center rounded-md px-2 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white"
                   onClick={() => {
                     if (window.innerWidth < 1024) {
