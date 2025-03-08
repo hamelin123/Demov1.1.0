@@ -10,14 +10,49 @@ import {
   CheckCircle, AlertTriangle, Clock
 } from 'lucide-react';
 
+  type ShipmentType = {
+    id: string;
+    orderNumber: string;
+    status: string;
+    origin: string;
+    destination: string;
+    customer: {
+      name: string;
+      contact: string;
+      phone: string;
+      email: string;
+    };
+    departureDate: string;
+    arrivalDate: string;
+    temperature: string; // เปลี่ยนจาก temperatureRange
+    expectedRange: string;
+    currenttemperature: number; // t ตัวพิมพ์เล็ก
+    vehicle: {
+      id: string;
+      name: string;
+      driver: {
+        name: string;
+        phone: string;
+      }
+    };
+    trackingEvents: Array<{
+      id: number;
+      timestamp: string;
+      location: string;
+      status: string;
+      notes: string; // เปลี่ยนจาก note เป็น notes
+    }>;
+  };
+
 export default function ShipmentDetailsPage() {
   const { id } = useParams();
+  const shipmentId = Array.isArray(id) ? id[0] : id;
   const router = useRouter();
   const { user, isAuthenticated, isLoading } = useAuth();
   const { language } = useLanguage();
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [shipment, setShipment] = useState(null);
+  const [shipment, setShipment] = useState<ShipmentType | null>(null);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -28,11 +63,13 @@ export default function ShipmentDetailsPage() {
       try {
         // จำลองความล่าช้าของเครือข่าย
         await new Promise(resolve => setTimeout(resolve, 1000));
-        
+
+        const { id } = useParams();
+        const shipmentId = Array.isArray(id) ? id[0] : id;
         // ข้อมูลจำลองสำหรับการทดสอบ
-        const mockShipment = {
-          id: id,
-          orderNumber: `CC-20250301-${id.padStart(4, '0')}`,
+        const mockShipment: ShipmentType = {
+          id: shipmentId,
+          orderNumber: `CC-20250301-${Array.isArray(id) ? id[0].padStart(4, '0') : id.padStart(4, '0')}`,
           status: 'in-transit',
           origin: 'กรุงเทพมหานคร',
           destination: 'เชียงใหม่',
@@ -46,7 +83,7 @@ export default function ShipmentDetailsPage() {
           arrivalDate: '2025-03-07T16:00:00.000Z',
           temperature: '-18°C',
           expectedRange: '-20°C to -18°C',
-          currentTemperature: -19.2,
+          currenttemperature : -19.2,
           vehicle: {
             id: 'XL-01',
             name: 'รถบรรทุกห้องเย็น XL-01',

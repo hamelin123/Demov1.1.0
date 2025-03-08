@@ -5,7 +5,7 @@ import { useAuth } from '@/components/auth/AuthProvider';
 import { useLanguage } from '@/providers/LanguageProvider';
 import { 
   Search, Filter, RefreshCw, Download, FileText, Calendar, 
-  ChevronDown, Thermometer, TrendingDown, TrendingUp, AlertCircle
+  ChevronDown, Thermometer, TrendingDown, TrendingUp, AlertCircle, CheckCircle, Truck
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -35,21 +35,108 @@ ChartJS.register(
   Legend
 );
 
+interface DateRange {
+  start: string;
+  end: string;
+}
+
+interface DeviationData {
+  vehicle: string;
+  avgDeviation: number;
+  maxDeviation: number;
+  minTemp: number;
+  maxTemp: number;
+  expectedRange: string;
+}
+
+interface AlertData {
+  id: string;
+  date: string;
+  orderNumber: string;
+  temperature: number;
+  expectedRange: string;
+  vehicle: string;
+  customer: string;
+  product: string;
+}
+
+interface AlertSummary {
+  totalAlerts: number;
+  highPriorityAlerts: number;
+  mediumPriorityAlerts: number;
+  lowPriorityAlerts: number;
+  alertsByVehicle: Record<string, number>;
+  alertsByProductType: Record<string, number>;
+}
+
+interface VehicleData {
+  vehicle: string;
+  avgTemp: number;
+  minTemp: number;
+  maxTemp: number;
+  expectedRange: string;
+  complianceRate: number;
+  tripCount: number;
+}
+
+interface ProductData {
+  product: string;
+  avgTemp: number;
+  minTemp: number;
+  maxTemp: number;
+  expectedRange: string;
+  complianceRate: number;
+  shipmentCount: number;
+}
+
+interface TemperatureStats {
+  averageTemperatureChilled: number;
+  averageTemperatureFrozen: number;
+  highestTemperatureChilled: number;
+  lowestTemperatureChilled: number;
+  highestTemperatureFrozen: number;
+  lowestTemperatureFrozen: number;
+  temperatureViolations: number;
+  complianceRate: number;
+}
+
+interface TemperatureReportData {
+  labels: string[];
+  datasets: Array<{
+    label: string;
+    data: number[];
+    borderColor: string | string[];
+    backgroundColor: string | string[];
+    tension?: number;
+    borderWidth?: number;
+    fill?: boolean;
+  }>;
+  stats?: TemperatureStats;
+  deviations?: DeviationData[];
+  alerts?: AlertData[];
+  summary?: AlertSummary;
+  vehicleData?: VehicleData[];
+  productData?: ProductData[];
+}
+
+type ReportType = 'temperature-trends' | 'temperature-deviations' | 
+  'temperature-alerts' | 'temperature-by-vehicle' | 'temperature-by-product';
+
 export default function TemperatureReportsPage() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const { language } = useLanguage();
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [dateRange, setDateRange] = useState({
+  const [dateRange, setDateRange] = useState<DateRange>({
     start: '',
     end: ''
   });
-  const [selectedReport, setSelectedReport] = useState('temperature-trends');
-  const [reportData, setReportData] = useState(null);
+  const [selectedReport, setSelectedReport] = useState<ReportType>('temperature-trends');
+  const [reportData, setReportData] = useState<TemperatureReportData | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [vehicleFilter, setVehicleFilter] = useState('all');
   const [showFilters, setShowFilters] = useState(false);
-  const reportContainerRef = useRef(null);
+  const reportContainerRef = useRef<HTMLDivElement>(null);
 
   const translations = {
     th: {
@@ -80,7 +167,6 @@ export default function TemperatureReportsPage() {
       complianceRate: 'อัตราการปฏิบัติตามข้อกำหนด',
       date: 'วันที่',
       temperature: 'อุณหภูมิ',
-      vehicle: 'ยานพาหนะ',
       product: 'ประเภทสินค้า',
       expectedRange: 'ช่วงอุณหภูมิที่กำหนด',
       exportPDF: 'ส่งออกเป็น PDF',
@@ -118,7 +204,6 @@ export default function TemperatureReportsPage() {
       complianceRate: 'Compliance Rate',
       date: 'Date',
       temperature: 'Temperature',
-      vehicle: 'Vehicle',
       product: 'Product Type',
       expectedRange: 'Expected Range',
       exportPDF: 'Export as PDF',
@@ -162,7 +247,7 @@ export default function TemperatureReportsPage() {
     setLoading(false);
   }, [isAuthenticated, isLoading, user]);
 
-  const handleDateChange = (e) => {
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setDateRange(prev => ({
       ...prev,
@@ -170,16 +255,16 @@ export default function TemperatureReportsPage() {
     }));
   };
 
-  const handleReportTypeChange = (reportType) => {
-    setSelectedReport(reportType);
-  };
-
-  const handleSearch = (e) => {
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
   };
-
-  const handleVehicleFilterChange = (e) => {
+  
+  const handleVehicleFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setVehicleFilter(e.target.value);
+  };
+  
+  const handleReportTypeChange = (reportType: ReportType) => {
+    setSelectedReport(reportType);
   };
 
   const toggleFilters = () => {
@@ -199,7 +284,7 @@ export default function TemperatureReportsPage() {
       
       // ข้อมูลจำลองสำหรับรายงานแนวโน้มอุณหภูมิ
       if (selectedReport === 'temperature-trends') {
-        const mockData = {
+        const mockData: TemperatureReportData = {
           labels: ['Mar 1', 'Mar 2', 'Mar 3', 'Mar 4', 'Mar 5', 'Mar 6', 'Mar 7', 'Mar 8', 'Mar 9', 'Mar 10'],
           datasets: [
             {
@@ -234,7 +319,7 @@ export default function TemperatureReportsPage() {
       
       // ข้อมูลจำลองสำหรับรายงานการเบี่ยงเบนอุณหภูมิ
       else if (selectedReport === 'temperature-deviations') {
-        const mockData = {
+        const mockData: TemperatureReportData = {
           labels: ['Truck XL-01', 'Truck MD-02', 'Van SM-03', 'Truck LG-04', 'Van SM-05'],
           datasets: [
             {
@@ -259,7 +344,9 @@ export default function TemperatureReportsPage() {
       
       // ข้อมูลจำลองสำหรับรายงานการแจ้งเตือนอุณหภูมิ
       else if (selectedReport === 'temperature-alerts') {
-        const mockData = {
+        const mockData: TemperatureReportData = {
+          labels: [],
+          datasets: [],
           alerts: [
             { 
               id: '1', 
@@ -339,7 +426,7 @@ export default function TemperatureReportsPage() {
       
       // ข้อมูลจำลองสำหรับรายงานอุณหภูมิตามยานพาหนะ
       else if (selectedReport === 'temperature-by-vehicle') {
-        const mockData = {
+        const mockData: TemperatureReportData = {
           labels: ['Truck XL-01', 'Truck MD-02', 'Van SM-03', 'Truck LG-04', 'Van SM-05'],
           datasets: [
             {
@@ -416,7 +503,7 @@ export default function TemperatureReportsPage() {
       
       // ข้อมูลจำลองสำหรับรายงานอุณหภูมิตามประเภทสินค้า
       else if (selectedReport === 'temperature-by-product') {
-        const mockData = {
+        const mockData: TemperatureReportData = {
           labels: ['Frozen Food', 'Pharmaceuticals', 'Dairy Products', 'Medical Supplies', 'Flowers'],
           datasets: [
             {
@@ -498,7 +585,7 @@ export default function TemperatureReportsPage() {
     }
   };
 
-  const exportReport = (format) => {
+  const exportReport = (format: string) => {
     // จำลองการส่งออกรายงาน
     console.log(`Exporting report in ${format} format...`);
     alert(`Report would be exported as ${format} in a real implementation.`);
@@ -510,7 +597,7 @@ export default function TemperatureReportsPage() {
   };
 
   const renderTemperatureTrendsReport = () => {
-    if (!reportData) return null;
+    if (!reportData || !reportData.stats) return null;
     
     const { labels, datasets, stats } = reportData;
     
@@ -519,7 +606,7 @@ export default function TemperatureReportsPage() {
       maintainAspectRatio: false,
       plugins: {
         legend: {
-          position: 'top',
+          position: 'top' as const,
         },
         title: {
           display: true,
@@ -592,16 +679,16 @@ export default function TemperatureReportsPage() {
   };
 
   const renderTemperatureDeviationsReport = () => {
-    if (!reportData) return null;
+    if (!reportData || !reportData.deviations) return null;
     
     const { labels, datasets, deviations } = reportData;
-    
+  
     const options = {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
         legend: {
-          position: 'top',
+          position: 'top' as const,
         },
         title: {
           display: true,
@@ -692,7 +779,7 @@ export default function TemperatureReportsPage() {
   };
 
   const renderTemperatureAlertsReport = () => {
-    if (!reportData) return null;
+    if (!reportData || !reportData.alerts || !reportData.summary) return null;
     
     const { alerts, summary } = reportData;
     
@@ -790,7 +877,7 @@ export default function TemperatureReportsPage() {
   };
 
   const renderTemperatureByVehicleReport = () => {
-    if (!reportData) return null;
+    if (!reportData || !reportData.vehicleData) return null;
     
     const { labels, datasets, vehicleData } = reportData;
     
@@ -799,7 +886,7 @@ export default function TemperatureReportsPage() {
       maintainAspectRatio: false,
       plugins: {
         legend: {
-          position: 'top',
+          position: 'top' as const,
         },
         title: {
           display: true,
@@ -890,7 +977,7 @@ export default function TemperatureReportsPage() {
   };
 
   const renderTemperatureByProductReport = () => {
-    if (!reportData) return null;
+    if (!reportData || !reportData.productData) return null;
     
     const { labels, datasets, productData } = reportData;
     
@@ -899,7 +986,7 @@ export default function TemperatureReportsPage() {
       maintainAspectRatio: false,
       plugins: {
         legend: {
-          position: 'top',
+          position: 'top' as const,
         },
         title: {
           display: true,
@@ -1077,7 +1164,7 @@ export default function TemperatureReportsPage() {
             </label>
             <select
               value={selectedReport}
-              onChange={(e) => handleReportTypeChange(e.target.value)}
+              onChange={(e) => handleReportTypeChange(e.target.value as ReportType)}
               className="w-full pl-3 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white appearance-none"
             >
               <option value="temperature-trends">{t.temperatureTrends}</option>

@@ -504,7 +504,7 @@ export default function SalesReportsPage() {
       maintainAspectRatio: false,
       plugins: {
         legend: {
-          position: "top", // ใช้ double quotes แทน
+          position: 'top' as const, // Use as const here
         },
         title: {
           display: true,
@@ -513,18 +513,18 @@ export default function SalesReportsPage() {
       },
       scales: {
         y: {
-          type: "linear", // ใช้ double quotes
+          type: 'linear' as const,
           display: true,
-          position: "left", // ใช้ double quotes
+          position: 'left' as const,
           title: {
             display: true,
             text: 'Revenue (THB)'
           }
         },
         y1: {
-          type: "linear", // ใช้ double quotes
+          type: 'linear' as const,
           display: true,
-          position: "right", // ใช้ double quotes
+          position: 'right' as const,
           grid: {
             drawOnChartArea: false,
           },
@@ -580,7 +580,7 @@ export default function SalesReportsPage() {
       maintainAspectRatio: false,
       plugins: {
         legend: {
-          position: 'top',
+          position: 'top' as const, // Add as const here
         },
         title: {
           display: true,
@@ -665,7 +665,7 @@ export default function SalesReportsPage() {
       maintainAspectRatio: false,
       plugins: {
         legend: {
-          position: 'top',
+          position: 'top' as const, // Add as const here
         },
         title: {
           display: true,
@@ -748,7 +748,7 @@ export default function SalesReportsPage() {
       maintainAspectRatio: false,
       plugins: {
         legend: {
-          position: 'top',
+          position: 'top' as const, // Add as const here
         },
         title: {
           display: true,
@@ -850,7 +850,7 @@ export default function SalesReportsPage() {
       maintainAspectRatio: false,
       plugins: {
         legend: {
-          position: 'top',
+          position: 'top' as const, // Add as const here
         },
         title: {
           display: true,
