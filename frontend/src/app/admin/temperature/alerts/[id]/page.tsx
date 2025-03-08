@@ -10,15 +10,48 @@ import {
   Truck, Clock, Package, User, Phone
 } from 'lucide-react';
 
+// เพิ่ม interface สำหรับ alert
+interface AlertType {
+  id: string;
+  orderNumber: string;
+  timestamp: string;
+  temperature: number;
+  expectedRange: { min: number; max: number };
+  location: string;
+  status: string;
+  severity: string;
+  description: string;
+  vehicle: {
+    id: string;
+    name: string;
+    registrationNumber: string;
+    driver: {
+      name: string;
+      phone: string;
+    }
+  };
+  customer: {
+    name: string;
+    contact: string;
+    phone: string;
+  };
+  product: {
+    name: string;
+    temperatureRequirement: string;
+  };
+  notes: string;
+}
+
 export default function TemperatureAlertDetailsPage() {
-  const { id } = useParams();
+  const params = useParams();
+  const alertId = Array.isArray(params.id) ? params.id[0] : params.id as string;
   const router = useRouter();
   const { user, isAuthenticated, isLoading } = useAuth();
   const { language } = useLanguage();
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [alert, setAlert] = useState(null);
-  const [error, setError] = useState(null);
+  const [alert, setAlert] = useState<AlertType | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -29,12 +62,8 @@ export default function TemperatureAlertDetailsPage() {
         // จำลองความล่าช้าของเครือข่าย
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // สร้าง mock data ให้ครอบคลุมทุก ID ที่อาจมีการเรียก
-        // เพิ่มเงื่อนไขให้ทำงานกับทุก ID ที่ส่งมา
-        const alertId = id ? id.toString() : '1';
-        
         // ข้อมูลจำลองสำหรับการทดสอบ - สร้าง default alert ในกรณีที่ไม่พบ ID
-        const defaultAlert = { 
+        const defaultAlert: AlertType = { 
           id: alertId, 
           orderNumber: `CC-20250301-${alertId}`, 
           timestamp: '2025-03-01T14:20:00.000Z',
@@ -65,7 +94,7 @@ export default function TemperatureAlertDetailsPage() {
           notes: ''
         };
         
-        const mockAlerts = {
+        const mockAlerts: Record<string, AlertType> = {
           '1': defaultAlert,
           '2': { 
             id: '2', 
@@ -143,7 +172,7 @@ export default function TemperatureAlertDetailsPage() {
     if (mounted) {
       fetchAlertDetails();
     }
-  }, [mounted, id]);
+  }, [mounted, alertId]);
 
   // ถ้ายังโหลดไม่เสร็จ
   if (!mounted || isLoading) {
@@ -228,9 +257,10 @@ export default function TemperatureAlertDetailsPage() {
     }
   };
 
-  const t = translations[language] || translations.en;
+  type LanguageType = 'en' | 'th';
+  const t = translations[language as LanguageType] || translations.en;
 
-  const getStatusClass = (status) => {
+  const getStatusClass = (status: string): string => {
     switch(status) {
       case 'pending':
         return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300';
@@ -241,7 +271,7 @@ export default function TemperatureAlertDetailsPage() {
     }
   };
 
-  const getSeverityClass = (severity) => {
+  const getSeverityClass = (severity: string): string => {
     switch(severity) {
       case 'high':
         return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300';
@@ -254,7 +284,7 @@ export default function TemperatureAlertDetailsPage() {
     }
   };
 
-  const getStatusLabel = (status) => {
+  const getStatusLabel = (status: string): string => {
     switch(status) {
       case 'pending':
         return t.pending;
@@ -265,7 +295,7 @@ export default function TemperatureAlertDetailsPage() {
     }
   };
 
-  const getSeverityLabel = (severity) => {
+  const getSeverityLabel = (severity: string): string => {
     switch(severity) {
       case 'high':
         return t.high;
@@ -278,7 +308,7 @@ export default function TemperatureAlertDetailsPage() {
     }
   };
 
-  const formatDateTime = (dateString) => {
+  const formatDateTime = (dateString: string): string => {
     if (!dateString) return '';
     
     const date = new Date(dateString);
@@ -288,7 +318,7 @@ export default function TemperatureAlertDetailsPage() {
   const handleResolveAlert = () => {
     // ในการใช้งานจริงจะเรียก API เพื่อแก้ไขสถานะการแจ้งเตือน
     // สำหรับการจำลอง เราจะแสดงข้อความแจ้งเตือน
-    alert('Alert resolution functionality would be implemented in a real application');
+    window.alert('Alert resolution functionality would be implemented in a real application');
   };
 
   // ถ้ามีข้อผิดพลาด

@@ -10,18 +10,54 @@ import {
   MapPin, Calendar, Clock
 } from 'lucide-react';
 
+// กำหนด interface สำหรับข้อมูล alert
+interface AlertType {
+  id: string;
+  orderNumber: string;
+  timestamp: string;
+  temperature: number;
+  expectedRange: { min: number; max: number };
+  location: string;
+  status: string;
+  severity: string;
+  description: string;
+  vehicle: {
+    id: string;
+    name: string;
+    registrationNumber: string;
+  };
+  customer: {
+    name: string;
+  };
+  product: {
+    name: string;
+    temperatureRequirement: string;
+  };
+  notes: string;
+}
+
+// กำหนด interface สำหรับ formData
+interface FormDataType {
+  status: string;
+  severity: string;
+  description: string;
+  notes: string;
+  resolutionNote: string;
+}
+
 export default function EditTemperatureAlertPage() {
-  const { id } = useParams();
+  const params = useParams();
+  const alertId = Array.isArray(params.id) ? params.id[0] : params.id;
   const router = useRouter();
   const { user, isAuthenticated, isLoading } = useAuth();
   const { language } = useLanguage();
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [alert, setAlert] = useState(null);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
-  const [formData, setFormData] = useState({
+  const [alert, setAlert] = useState<AlertType | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [formData, setFormData] = useState<FormDataType>({
     status: '',
     severity: '',
     description: '',
@@ -39,7 +75,7 @@ export default function EditTemperatureAlertPage() {
         await new Promise(resolve => setTimeout(resolve, 1000));
         
         // ข้อมูลจำลองสำหรับการทดสอบ
-        const mockAlerts = {
+        const mockAlerts: Record<string, AlertType> = {
           '1': { 
             id: '1', 
             orderNumber: 'CC-20250301-1234', 
@@ -114,7 +150,7 @@ export default function EditTemperatureAlertPage() {
           }
         };
         
-        const alertData = mockAlerts[id];
+        const alertData = mockAlerts[alertId];
         
         if (!alertData) {
           setError('Alert not found');
@@ -141,7 +177,7 @@ export default function EditTemperatureAlertPage() {
     if (mounted) {
       fetchAlertDetails();
     }
-  }, [mounted, id]);
+  }, [mounted, alertId]);
 
   // ถ้ายังโหลดไม่เสร็จ
   if (!mounted || isLoading) {
@@ -220,9 +256,10 @@ export default function EditTemperatureAlertPage() {
     }
   };
 
-  const t = translations[language] || translations.en;
+  type LanguageType = 'en' | 'th';
+  const t = translations[language as LanguageType] || translations.en;
 
-  const getStatusLabel = (status) => {
+  const getStatusLabel = (status: string): string => {
     switch(status) {
       case 'pending':
         return t.pending;
@@ -233,7 +270,7 @@ export default function EditTemperatureAlertPage() {
     }
   };
 
-  const getSeverityLabel = (severity) => {
+  const getSeverityLabel = (severity: string): string => {
     switch(severity) {
       case 'high':
         return t.high;
@@ -246,14 +283,14 @@ export default function EditTemperatureAlertPage() {
     }
   };
 
-  const formatDateTime = (dateString) => {
+  const formatDateTime = (dateString: string): string => {
     if (!dateString) return '';
     
     const date = new Date(dateString);
     return date.toLocaleString(language === 'en' ? 'en-US' : 'th-TH');
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -261,7 +298,7 @@ export default function EditTemperatureAlertPage() {
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSaving(true);
     setError(null);
@@ -279,7 +316,7 @@ export default function EditTemperatureAlertPage() {
       
       // รอสักครู่แล้วกลับไปหน้ารายละเอียดการแจ้งเตือน
       setTimeout(() => {
-        router.push(`/admin/temperature/alerts/${id}`);
+        router.push(`/admin/temperature/alerts/${alertId}`);
       }, 2000);
     } catch (error) {
       console.error('Error saving alert:', error);
@@ -289,7 +326,7 @@ export default function EditTemperatureAlertPage() {
   };
   
   // เพิ่มฟังก์ชันเพื่อจัดการการแก้ไขแล้ว
-    const handleResolve = async (e) => {
+  const handleResolve = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     
     if (!formData.resolutionNote) {
@@ -376,7 +413,7 @@ export default function EditTemperatureAlertPage() {
     <div className="p-6">
       <div className="mb-6 flex items-center">
         <Link
-          href={`/admin/temperature/alerts/${id}`} 
+          href={`/admin/temperature/alerts/${alertId}`} 
           className="mr-3 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
         >
           <ArrowLeft size={20} className="text-gray-600 dark:text-gray-300" />
@@ -601,7 +638,7 @@ export default function EditTemperatureAlertPage() {
           
           <div className="flex justify-end space-x-3 pt-6">
             <Link
-              href={`/admin/temperature/alerts/${id}`}
+              href={`/admin/temperature/alerts/${alertId}`}
               className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
               {t.backToDetails}
@@ -628,7 +665,7 @@ export default function EditTemperatureAlertPage() {
             </button>
           </div>
         </form>
-      ) : null}
-    </div>
-  );
-}
+              ) : null}
+              </div>
+            );
+          }

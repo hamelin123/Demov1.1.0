@@ -9,17 +9,48 @@ import {
   ArrowLeft, AlertTriangle, CheckCircle, Save, Thermometer
 } from 'lucide-react';
 
+// เพิ่ม interface สำหรับอธิบายโครงสร้างข้อมูล alert
+interface AlertType {
+  id: string;
+  orderNumber: string;
+  timestamp: string;
+  temperature: number;
+  expectedRange: { min: number; max: number };
+  location: string;
+  status: string;
+  severity: string;
+  description: string;
+}
+
+// กำหนด interface สำหรับ translations
+interface Translations {
+  title: string;
+  backToAlerts: string;
+  alertInfo: string;
+  location: string;
+  timestamp: string;
+  temperature: string;
+  expectedRange: string;
+  resolutionNote: string;
+  resolutionNotePlaceholder: string;
+  resolveAlert: string;
+  saving: string;
+  error: string;
+  alertNotFound: string;
+}
+
 export default function ResolveAlertPage() {
-  const { id } = useParams();
+  const params = useParams();
+  const alertId = Array.isArray(params.id) ? params.id[0] : params.id as string;
   const router = useRouter();
   const { user, isAuthenticated, isLoading } = useAuth();
   const { language } = useLanguage();
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [alert, setAlert] = useState(null);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
+  const [alert, setAlert] = useState<AlertType | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [resolutionNote, setResolutionNote] = useState('');
 
   useEffect(() => {
@@ -32,7 +63,7 @@ export default function ResolveAlertPage() {
         await new Promise(resolve => setTimeout(resolve, 1000));
         
         // ข้อมูลจำลองสำหรับการทดสอบ
-        const mockAlerts = {
+        const mockAlerts: Record<string, AlertType> = {
           '1': { 
             id: '1', 
             orderNumber: 'CC-20250301-1234', 
@@ -57,7 +88,7 @@ export default function ResolveAlertPage() {
           }
         };
         
-        const alertData = mockAlerts[id];
+        const alertData = mockAlerts[alertId];
         
         if (!alertData) {
           setError('Alert not found');
@@ -77,9 +108,9 @@ export default function ResolveAlertPage() {
     if (mounted) {
       fetchAlertDetails();
     }
-  }, [mounted, id]);
+  }, [mounted, alertId]);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
     if (!resolutionNote) {
@@ -96,7 +127,7 @@ export default function ResolveAlertPage() {
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       console.log('Resolving alert:', {
-        id,
+        id: alertId,
         status: 'resolved',
         resolutionNote,
         resolvedBy: user?.full_name || user?.email || 'Admin',
@@ -118,14 +149,15 @@ export default function ResolveAlertPage() {
     }
   };
 
-  const formatDateTime = (dateString) => {
+  const formatDateTime = (dateString: string): string => {
     if (!dateString) return '';
     
     const date = new Date(dateString);
     return date.toLocaleString(language === 'en' ? 'en-US' : 'th-TH');
   };
 
-  const t = {
+  // กำหนด translations แยกออกมาก่อน
+  const translations: Record<string, Translations> = {
     en: {
       title: 'Resolve Temperature Alert',
       backToAlerts: 'Back to Alerts',
@@ -156,7 +188,10 @@ export default function ResolveAlertPage() {
       error: 'ข้อผิดพลาด',
       alertNotFound: 'ไม่พบข้อมูลการแจ้งเตือน'
     }
-  }[language] || t.en;
+  };
+
+  // แยกการเลือกใช้ translations ออกมา
+  const t = translations[language as 'en' | 'th'] || translations.en;
 
   if (!mounted || isLoading || loading) {
     return (

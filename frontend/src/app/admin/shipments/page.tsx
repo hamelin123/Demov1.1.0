@@ -1,3 +1,4 @@
+// frontend/src/app/admin/shipments/page.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -6,11 +7,25 @@ import { useLanguage } from '@/providers/LanguageProvider';
 import Link from 'next/link';
 import { Search, Filter, RefreshCw, Truck, MapPin, Calendar, Package, ChevronDown } from 'lucide-react';
 
+// เพิ่ม type definition สำหรับข้อมูล shipment
+type ShipmentItem = {
+  id: string;
+  orderNumber: string;
+  status: string;
+  origin: string;
+  destination: string;
+  customerName: string;
+  departureDate: string;
+  arrivalDate: string;
+  temperature: string;
+  vehicle: string;
+};
+
 export default function ShipmentsPage() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const { language } = useLanguage();
   const [mounted, setMounted] = useState(false);
-  const [shipments, setShipments] = useState([]);
+  const [shipments, setShipments] = useState<ShipmentItem[]>([]); // กำหนด type ให้ state
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
@@ -23,7 +38,7 @@ export default function ShipmentsPage() {
         await new Promise(resolve => setTimeout(resolve, 1000));
         
         // ข้อมูลจำลอง
-        const mockShipments = [
+        const mockShipments: ShipmentItem[] = [
           { 
             id: '1', 
             orderNumber: 'CC-20250301-1234',
@@ -126,9 +141,11 @@ export default function ShipmentsPage() {
     }
   };
 
-  const t = translations[language] || translations.en;
+  // กำหนด type ให้ไม่มี error
+  type TranslationLanguage = 'en' | 'th';
+  const t = translations[language as TranslationLanguage] || translations.en;
 
-  const getStatusClass = (status) => {
+  const getStatusClass = (status: string) => {
     switch(status) {
       case 'pending':
         return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300';
@@ -141,7 +158,7 @@ export default function ShipmentsPage() {
     }
   };
 
-  const getStatusLabel = (status) => {
+  const getStatusLabel = (status: string) => {
     switch(status) {
       case 'pending':
         return t.pending;

@@ -1,3 +1,5 @@
-export default function AlertDetailsLayout({ children }) {
-    return children;
-  }
+import React from 'react';
+
+export default function AlertDetailsLayout({ children }: { children: React.ReactNode }) {
+  return children;
+}

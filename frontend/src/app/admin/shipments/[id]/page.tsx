@@ -26,7 +26,7 @@ import {
     arrivalDate: string;
     temperature: string; // เปลี่ยนจาก temperatureRange
     expectedRange: string;
-    currenttemperature: number; // t ตัวพิมพ์เล็ก
+    currentTemperature: number; // แก้จาก currenttemperature
     vehicle: {
       id: string;
       name: string;
@@ -35,6 +35,21 @@ import {
         phone: string;
       }
     };
+    currentLocation?: {
+      address: string;
+      timestamp: string;
+      coordinates?: {
+        latitude: number;
+        longitude: number;
+      }
+    };
+    items?: Array<{
+      id: number;
+      name: string;
+      quantity: number;
+      weight: string;
+      temperature: string;
+    }>;
     trackingEvents: Array<{
       id: number;
       timestamp: string;
@@ -43,6 +58,21 @@ import {
       notes: string; // เปลี่ยนจาก note เป็น notes
     }>;
   };
+
+  type ShipmentItem = {
+    id: string;
+    orderNumber: string;
+    status: string;
+    origin: string;
+    destination: string;
+    customerName: string;
+    departureDate: string;
+    arrivalDate: string;
+    temperature: string;
+    vehicle: string;
+  };
+
+  type Language = 'en' | 'th';
 
 export default function ShipmentDetailsPage() {
   const { id } = useParams();
@@ -53,7 +83,7 @@ export default function ShipmentDetailsPage() {
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [shipment, setShipment] = useState<ShipmentType | null>(null);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -64,12 +94,10 @@ export default function ShipmentDetailsPage() {
         // จำลองความล่าช้าของเครือข่าย
         await new Promise(resolve => setTimeout(resolve, 1000));
 
-        const { id } = useParams();
-        const shipmentId = Array.isArray(id) ? id[0] : id;
         // ข้อมูลจำลองสำหรับการทดสอบ
         const mockShipment: ShipmentType = {
           id: shipmentId,
-          orderNumber: `CC-20250301-${Array.isArray(id) ? id[0].padStart(4, '0') : id.padStart(4, '0')}`,
+          orderNumber: `CC-20250301-${shipmentId.padStart(4, '0')}`,
           status: 'in-transit',
           origin: 'กรุงเทพมหานคร',
           destination: 'เชียงใหม่',
@@ -83,7 +111,7 @@ export default function ShipmentDetailsPage() {
           arrivalDate: '2025-03-07T16:00:00.000Z',
           temperature: '-18°C',
           expectedRange: '-20°C to -18°C',
-          currenttemperature : -19.2,
+          currentTemperature: -19.2,
           vehicle: {
             id: 'XL-01',
             name: 'รถบรรทุกห้องเย็น XL-01',
@@ -160,7 +188,7 @@ export default function ShipmentDetailsPage() {
     if (mounted) {
       fetchShipmentDetails();
     }
-  }, [mounted, id]);
+  }, [mounted, shipmentId]);
 
   // ถ้ายังโหลดไม่เสร็จ
   if (!mounted || isLoading) {
@@ -249,9 +277,10 @@ export default function ShipmentDetailsPage() {
     }
   };
 
-  const t = translations[language] || translations.en;
+  type Language = 'en' | 'th';
+  const t = translations[language as Language] || translations.en;
 
-  const getStatusClass = (status) => {
+  const getStatusClass = (status: string) => {
     switch(status) {
       case 'pending':
         return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300';
@@ -272,7 +301,7 @@ export default function ShipmentDetailsPage() {
     }
   };
 
-  const getStatusLabel = (status) => {
+  const getStatusLabel = (status: string) => {
     switch(status) {
       case 'pending':
         return t.pending;
@@ -293,7 +322,7 @@ export default function ShipmentDetailsPage() {
     }
   };
 
-  const formatDateTime = (dateString) => {
+  const formatDateTime = (dateString: string) => {
     if (!dateString) return '';
     
     const date = new Date(dateString);
